@@ -1,0 +1,2097 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Racket Life — 羽球生涯</title>
+<style>
+  :root{
+    --bg:#0c0d10; --bg2:#121317; --panel:#16181d; --panel2:#1c1f26;
+    --line:#2a2e37; --line2:#363b47;
+    --ink:#e9eaee; --sub:#9aa0ad; --dim:#5f6672;
+    --neon:#d7ff32; --neonY:#ffe14d; --sky:#38bdf8; --silver:#e4e4e7;
+    --green:#34d399; --amber:#f5b642; --red:#f87171; --red2:#f87171;
+    --gold:#f4c95d; --pink:#f472b6; --violet:#a78bfa;
+    --shadow:0 10px 40px rgba(0,0,0,.55);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body{min-height:100vh;background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(56,189,248,.06), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(215,255,50,.05), transparent 60%),
+    var(--bg);}
+  #app{max-width:560px;margin:0 auto;padding:0 0 40px;position:relative}
+  .screen{display:none;animation:fade .35s ease}
+  .screen.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @keyframes glowpulse{0%,100%{box-shadow:0 0 0 rgba(215,255,50,0)}50%{box-shadow:0 0 22px rgba(215,255,50,.35)}}
+  @keyframes redflash{0%,100%{box-shadow:inset 0 0 0 rgba(248,113,113,0)}50%{box-shadow:inset 0 0 40px rgba(248,113,113,.45)}}
+  @keyframes blink{50%{opacity:.25}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes slidein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  /* News ticker — full-width, sticky top */
+  #ticker{display:flex;align-items:center;height:32px;width:100%;background:#07080a;
+    border-bottom:1px solid #1e3a2a;overflow:hidden;font-size:12.5px;
+    position:sticky;top:0;z-index:40}
+  .tk-tag{flex:0 0 auto;padding:0 14px;height:100%;display:flex;align-items:center;
+    font-weight:800;color:var(--green);background:linear-gradient(90deg,#0c1712,#0a0b0e);
+    border-right:1px solid #1e3a2a;letter-spacing:.5px}
+  .tk-tag::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green);
+    margin-right:7px;box-shadow:0 0 8px var(--green);animation:blink 1.4s infinite}
+  .tk-view{flex:1;overflow:hidden;position:relative;
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 3%,#000 96%,transparent);
+    mask-image:linear-gradient(90deg,transparent,#000 3%,#000 96%,transparent)}
+  .tk-track{display:inline-flex;white-space:nowrap;will-change:transform;animation:marq 50s linear infinite}
+  #ticker:hover .tk-track{animation-play-state:paused}
+  .tk-item{padding:0 20px;color:var(--sub);flex:0 0 auto}
+  .tk-item b{color:var(--neonY);font-weight:700}
+  .tk-item .g{color:var(--green)}
+  .tk-sep{color:var(--dim);align-self:center}
+  @keyframes marq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  .wrap{padding:16px}
+  h1,h2,h3{margin:0;font-weight:800;letter-spacing:.5px}
+  .mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+  .btn{display:block;width:100%;border:1px solid var(--line2);background:linear-gradient(180deg,#20242c,#181b21);
+    color:var(--ink);padding:14px 16px;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;
+    transition:.15s;margin:8px 0;text-align:left;position:relative}
+  .btn:hover{border-color:var(--neon);transform:translateY(-1px)}
+  .btn:active{transform:translateY(0)}
+  .btn.primary{background:linear-gradient(180deg,#2c3340,#1b2028);border-color:#3a4a2a}
+  .btn.primary:hover{border-color:var(--neon);box-shadow:0 0 18px rgba(215,255,50,.2)}
+  .btn.ghost{background:transparent;border-color:var(--line)}
+  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  .btn .sub{display:block;font-size:12px;color:var(--sub);font-weight:500;margin-top:4px;line-height:1.4}
+  .btn .tag{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--neon);
+    border:1px solid var(--line2);border-radius:20px;padding:3px 9px;font-weight:700}
+  .row{display:flex;gap:10px}.row>*{flex:1}
+  .center{text-align:center}
+  .sub{color:var(--sub)}.dim{color:var(--dim)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0;box-shadow:var(--shadow)}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid var(--line2);color:var(--sub)}
+  .pill.neon{color:var(--neon);border-color:#3a4a2a}
+  .pill.sky{color:var(--sky);border-color:#1d3a4a}
+  .pill.gold{color:var(--gold);border-color:#4a3f1d}
+
+  /* Title */
+  .logo{font-size:40px;font-weight:900;letter-spacing:2px;line-height:1;margin-top:10px}
+  .logo .y{color:var(--neonY)}
+  .logoplate{display:inline-block;padding:10px 6px;margin-top:2px;background:none}
+  .logoimg{width:58vw;max-width:270px;display:block;
+    filter:drop-shadow(0 3px 10px rgba(0,0,0,.45));
+    animation:fade .6s ease}
+  .shuttle{display:inline-block;animation:spin 4s linear infinite;transform-origin:50% 50%}
+  .titlecard{margin-top:0;text-align:center;padding:14px 16px 24px}
+  .scoregrid{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;
+    background:#0a0b0e;border:1px solid var(--line2);border-radius:14px;padding:12px;margin:14px auto;max-width:340px}
+  .scoregrid .nm{font-size:12px;color:var(--sub);text-transform:uppercase;letter-spacing:1px}
+  .scoregrid .sc{font-size:38px;font-weight:900;color:var(--neonY);font-variant-numeric:tabular-nums}
+  .scoregrid .vs{font-size:12px;color:var(--dim)}
+
+  /* Header dashboard (hub) */
+  .hdr{position:sticky;top:32px;z-index:20;background:linear-gradient(180deg,rgba(12,13,16,.98),rgba(12,13,16,.9));
+    border-bottom:1px solid var(--line);backdrop-filter:blur(8px);padding:10px 14px}
+  .hdr .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .hdr .who{font-weight:800;font-size:15px}
+  .hdr .meta{font-size:11px;color:var(--sub);margin-top:1px}
+  .hdr .rank{font-size:11px;text-align:right;color:var(--sub)}
+  .hdr .rank b{color:var(--sky);font-size:16px}
+  .bars{display:flex;gap:8px;margin-top:9px}
+  .bar{flex:1}
+  .bar .lab{display:flex;justify-content:space-between;font-size:10px;color:var(--sub);margin-bottom:3px}
+  .bar .track{height:7px;background:#0a0b0e;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+  .bar .fill{height:100%;border-radius:6px;transition:width .5s}
+  .bar.stam .fill{background:linear-gradient(90deg,#16a34a,#34d399)}
+  .bar.mor  .fill{background:linear-gradient(90deg,#0284c7,#38bdf8)}
+  .bar.warn .fill{background:linear-gradient(90deg,#d97706,#f5b642)!important}
+  .bar.crit .fill{background:linear-gradient(90deg,#b91c1c,#f87171)!important;animation:blink 1s infinite}
+
+  /* Radar + stats */
+  .radarwrap{display:flex;gap:12px;align-items:center}
+  #radar{width:190px;height:190px;flex:0 0 190px}
+  .statlist{flex:1;display:flex;flex-direction:column;gap:6px}
+  .statrow{display:flex;justify-content:space-between;font-size:12px;align-items:center}
+  .statrow .v{font-weight:800;font-variant-numeric:tabular-nums}
+  .sbar{height:5px;flex:1;margin:0 8px;background:#0a0b0e;border-radius:4px;overflow:hidden;border:1px solid var(--line)}
+  .sbar i{display:block;height:100%;background:linear-gradient(90deg,var(--sky),var(--neon))}
+
+  /* season tab: info left, actions right */
+  .seasonrow{display:flex;gap:12px;align-items:flex-start}
+  .seasonrow .col-info{flex:1 1 44%;min-width:0}
+  .seasonrow .col-act{flex:1 1 56%;min-width:0}
+  .seasonrow .btn{padding:12px 13px;font-size:14px}
+  .forcebar{background:linear-gradient(180deg,#2a1414,#1a0f0f);border:1px solid #4a1c1c;
+    color:var(--red2);font-weight:800;font-size:13px;text-align:center;padding:9px;border-radius:12px;
+    margin-bottom:8px;animation:blink 1.6s infinite}
+  @media(max-width:430px){ .seasonrow{flex-direction:column} }
+  /* profile tab: radar + gear left, attribute values right */
+  .profilerow{display:flex;gap:12px;align-items:flex-start}
+  .profilerow .p-left{flex:1 1 42%;min-width:0}
+  .profilerow .p-right{flex:1 1 58%;min-width:0}
+  .profilerow #radar{width:100%;max-width:190px;height:auto;aspect-ratio:1/1}
+  .profilerow .attrgrid{grid-template-columns:1fr}
+  @media(max-width:430px){ .profilerow{flex-direction:column} .profilerow .attrgrid{grid-template-columns:1fr 1fr} }
+  .grp{margin:14px 0}
+  .grp h3{font-size:12px;color:var(--sub);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;
+    padding-bottom:6px;border-bottom:1px solid var(--line)}
+  .attrgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+  .attr{font-size:12px}
+  .attr .t{display:flex;justify-content:space-between;color:var(--sub)}
+  .attr .t b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .attr .mini{height:4px;background:#0a0b0e;border-radius:3px;margin-top:3px;overflow:hidden;border:1px solid var(--line)}
+  .attr .mini i{display:block;height:100%;background:linear-gradient(90deg,#3a4a6a,var(--sky))}
+
+  /* Match */
+  .board{background:#07080a;border:1px solid var(--line2);border-radius:16px;overflow:hidden;margin-bottom:12px}
+  .board .rowb{display:grid;grid-template-columns:1fr auto auto;align-items:center;padding:12px 14px;gap:10px}
+  .board .rowb+.rowb{border-top:1px solid var(--line)}
+  .board .serve{width:9px;height:9px;border-radius:50%;background:var(--neonY);display:inline-block;margin-right:7px;box-shadow:0 0 8px var(--neonY);opacity:0}
+  .board .serve.on{opacity:1}
+  .board .pname{font-weight:800;font-size:14px}
+  .board .games{display:flex;gap:6px}
+  .board .g{width:26px;text-align:center;font-weight:800;color:var(--sub);font-size:14px;font-variant-numeric:tabular-nums}
+  .board .g.win{color:var(--neon)}
+  .board .pt{font-size:34px;font-weight:900;color:var(--neonY);font-variant-numeric:tabular-nums;min-width:52px;text-align:center}
+  .board.mp{animation:redflash 1.1s infinite}
+  .rally{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;height:260px;overflow-y:auto;margin-bottom:12px}
+  .rally .line{font-size:13px;line-height:1.5;padding:5px 2px;border-bottom:1px dashed rgba(255,255,255,.04);animation:slidein .3s}
+  .rally .line .p{color:var(--neon);font-weight:700}
+  .rally .line .o{color:var(--sky);font-weight:700}
+  .rally .line.pt{font-weight:800;color:var(--neonY)}
+  .rally .line.sys{color:var(--dim);font-style:italic}
+  .rally::-webkit-scrollbar{width:6px}.rally::-webkit-scrollbar-thumb{background:var(--line2);border-radius:6px}
+
+  /* Modal / event */
+  .overlay{position:fixed;inset:0;background:rgba(4,5,7,.72);backdrop-filter:blur(6px);z-index:50;
+    display:none;align-items:center;justify-content:center;padding:18px}
+  .overlay.on{display:flex;animation:fade .25s}
+  .modal{width:100%;max-width:460px;background:linear-gradient(180deg,rgba(30,34,42,.9),rgba(20,23,28,.94));
+    border:1px solid var(--line2);border-radius:20px;padding:20px;box-shadow:var(--shadow);
+    max-height:88vh;overflow-y:auto}
+  .modal h2{font-size:19px;margin-bottom:6px}
+  .modal .desc{font-size:14px;color:var(--sub);line-height:1.6;margin:10px 0 16px}
+  .modal .emoji{font-size:34px}
+  .opt{border:1px solid var(--line2);background:rgba(255,255,255,.02);border-radius:14px;padding:13px 14px;margin:9px 0;cursor:pointer;transition:.15s}
+  .opt:hover{border-color:var(--neon);background:rgba(215,255,50,.05)}
+  .opt .ot{font-weight:700;font-size:14px}
+  .opt .oe{font-size:11px;color:var(--sub);margin-top:5px;display:flex;flex-wrap:wrap;gap:6px}
+  .chip{border:1px solid var(--line2);border-radius:20px;padding:2px 8px;font-variant-numeric:tabular-nums}
+  .chip.up{color:var(--green);border-color:#1c3a2a}
+  .chip.dn{color:var(--red2);border-color:#3a1c1c}
+  .chip.risk{color:var(--amber);border-color:#3a2f1c}
+
+  /* toast / log feed */
+  #feed{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:60;width:calc(100% - 24px);max-width:536px;pointer-events:none}
+  .toast{background:linear-gradient(180deg,#20242c,#171a20);border:1px solid var(--line2);border-radius:12px;
+    padding:11px 14px;font-size:13px;margin-top:8px;box-shadow:var(--shadow);animation:slidein .3s}
+  .toast.good{border-color:#1c3a2a}.toast.bad{border-color:#3a1c1c}.toast.gold{border-color:#4a3f1d;color:var(--gold)}
+
+  /* achievements grid */
+  .achgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .ach{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--panel)}
+  .ach.got{border-color:#4a3f1d;background:linear-gradient(180deg,rgba(244,201,93,.08),rgba(20,23,28,.6))}
+  .ach .ico{font-size:22px;filter:grayscale(1) opacity(.4)}
+  .ach.got .ico{filter:none}
+  .ach .an{font-size:12px;font-weight:800;margin-top:6px}
+  .ach.got .an{color:var(--gold)}
+  .ach .ad{font-size:10px;color:var(--sub);margin-top:3px;line-height:1.4}
+
+  .seg{display:flex;gap:6px;background:#0a0b0e;border:1px solid var(--line);border-radius:12px;padding:4px;margin:10px 0}
+  .seg button{flex:1;border:none;background:transparent;color:var(--sub);padding:8px;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer}
+  .seg button.on{background:var(--panel2);color:var(--neon)}
+  .foot{display:flex;gap:8px;padding:0 14px}
+  .divider{height:1px;background:var(--line);margin:14px 0}
+  .kv{display:flex;justify-content:space-between;font-size:13px;padding:5px 0}
+  .kv .k{color:var(--sub)}.kv .v{font-weight:700}
+  .big{font-size:26px;font-weight:900}
+  .goldtext{color:var(--gold)}
+  .small{font-size:11px}
+  .tapnote{font-size:11px;color:var(--dim);text-align:center;margin-top:8px}
+  .gstat{margin:16px auto 0;text-align:center;font-size:12px;color:var(--sub);
+    border:1px solid var(--line);border-radius:20px;padding:8px 14px;display:inline-flex;
+    align-items:center;gap:6px;background:rgba(255,255,255,.02)}
+  .gstat{display:flex;justify-content:center;max-width:280px}
+  .gstat b{color:var(--neon);font-size:14px}
+  .gstat .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 1.6s infinite}
+  a.link{color:var(--sky);cursor:pointer}
+</style>
+</head>
+<body>
+<!-- NEWS TICKER (full-width, outside #app) -->
+<div id="ticker">
+  <div class="tk-tag">🟢 BWF 快訊</div>
+  <div class="tk-view"><div class="tk-track" id="tk-track"></div></div>
+</div>
+
+<div id="app">
+
+  <!-- TITLE -->
+  <section id="s-title" class="screen on">
+    <div class="titlecard">
+      <div class="logoplate"><img class="logoimg" src="logo.png" alt="RACKET LIFE"></div>
+      <div class="sub" style="margin-top:10px;letter-spacing:3px;font-size:12px">羽 球 職 業 生 涯 模 擬 器</div>
+      <div class="scoregrid mono">
+        <div><div class="nm">YOU</div><div class="sc">21</div></div>
+        <div class="vs">— GAME —</div>
+        <div><div class="nm">RIVAL</div><div class="sc">19</div></div>
+      </div>
+      <div class="wrap">
+        <button class="btn primary" onclick="Game.newGame()">▶ 新的生涯 <span class="tag">6 歲起</span></button>
+        <button class="btn" id="btn-continue" onclick="Game.continueGame()">繼續生涯 <span class="sub" id="cont-sub"></span></button>
+        <button class="btn ghost" onclick="UI.show('s-guide')">遊戲說明 · 克制鏈</button>
+        <button class="btn ghost" id="btn-delete" onclick="Game.deleteSave()" style="color:var(--red2);border-color:#3a1c1c">🗑️ 刪除生涯存檔</button>
+        <div class="tapnote">自動存檔於本機瀏覽器 · 6 歲養成到退役 · BWF 賽制</div>
+        <div class="gstat">
+          <span class="dot"></span>🌍 全球已開啟生涯
+          <b class="mono" id="gstat-num">—</b> 次
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GUIDE -->
+  <section id="s-guide" class="screen">
+    <div class="hdr"><div class="top"><div class="who">遊戲說明</div>
+      <button class="btn ghost" style="width:auto;margin:0;padding:6px 12px" onclick="UI.show('s-title')">返回</button></div></div>
+    <div class="wrap">
+      <div class="card">
+        <h3 style="color:var(--neon)">🔺 打法克制鏈</h3>
+        <p class="sub small" style="line-height:1.7;margin-top:8px">
+        <b style="color:var(--sky)">拉吊控球</b> → 克制 → <b style="color:var(--red2)">暴力進攻</b>（消耗體能、逼失誤）<br>
+        <b style="color:var(--red2)">暴力進攻</b> → 克制 → <b style="color:var(--green)">防守反擊</b>（連續重殺破防）<br>
+        <b style="color:var(--green)">防守反擊</b> → 克制 → <b style="color:var(--sky)">拉吊控球</b>（穩守待抓球失誤）</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--neon)">⚙️ 得分公式</h3>
+        <p class="sub small" style="line-height:1.7;margin-top:8px">
+        每一分 = 技術優勢×0.4 ＋ 體能剩餘×0.3 ＋ 心態×0.2 ＋ 運氣。<br>
+        比分到 <b class="mono">20:20</b> 或 <b class="mono">19:20</b> 時進入<b style="color:var(--neonY)">關鍵分</b>，大心態／抗壓權重翻倍。<br>
+        邊線壓線球可提出<b style="color:var(--sky)">鷹眼挑戰</b>，每局三次。</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--neon)">📈 生涯循環</h3>
+        <p class="sub small" style="line-height:1.7;margin-top:8px">
+        每個賽季：<b>訓練</b> → <b>選賽程</b> → <b>比賽模擬</b> → <b>賽後事件</b> → <b>年終排名</b>。<br>
+        體能低於 15% 會閃紅並提高傷病風險。28 歲後身體屬性逐年下滑，需轉型控球。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CREATE -->
+  <section id="s-create" class="screen">
+    <div class="hdr"><div class="top"><div class="who">建立球員 · 童年啟蒙</div></div></div>
+    <div class="wrap" id="create-body"></div>
+  </section>
+
+  <!-- HUB -->
+  <section id="s-hub" class="screen">
+    <div class="hdr" id="hub-hdr"></div>
+    <div class="seg" style="margin:10px 14px 0">
+      <button id="tab-season" class="on" onclick="UI.hubTab('season')">賽季</button>
+      <button id="tab-profile" onclick="UI.hubTab('profile')">檔案</button>
+      <button id="tab-history" onclick="UI.hubTab('history')">歷程</button>
+      <button id="tab-ach" onclick="UI.hubTab('ach')">圖鑑</button>
+    </div>
+    <div class="wrap" id="hub-body"></div>
+  </section>
+
+  <!-- FULL ATTRIBUTES -->
+  <section id="s-attrs" class="screen">
+    <div class="hdr"><div class="top"><div class="who">完整屬性</div>
+      <button class="btn ghost" style="width:auto;margin:0;padding:6px 12px" onclick="Hub.backFromAttrs()">◀ 返回檔案</button></div></div>
+    <div class="wrap" id="attrs-body"></div>
+  </section>
+
+  <!-- SHOP -->
+  <section id="s-shop" class="screen">
+    <div class="hdr"><div class="top"><div><div class="who">🛒 商店</div>
+      <div class="meta" id="shop-money"></div></div>
+      <button class="btn ghost" style="width:auto;margin:0;padding:6px 12px" onclick="Shop.back()">◀ 返回賽季</button></div></div>
+    <div class="wrap" id="shop-body"></div>
+  </section>
+
+  <!-- MATCH -->
+  <section id="s-match" class="screen">
+    <div class="wrap">
+      <div id="match-title" class="center" style="margin-bottom:10px"></div>
+      <div class="board" id="board"></div>
+      <div class="rally" id="rally"></div>
+      <div class="foot" id="match-foot"></div>
+    </div>
+  </section>
+
+  <!-- CAREER END -->
+  <section id="s-end" class="screen">
+    <div class="wrap" id="end-body"></div>
+  </section>
+
+</div>
+
+<div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
+<div id="feed"></div>
+
+<script>
+/* =========================================================================
+   RACKET LIFE — 羽球職業生涯模擬器  (single-file, offline)
+   ========================================================================= */
+"use strict";
+const $=(id)=>document.getElementById(id);
+const clamp=(v,a=0,b=100)=>Math.max(a,Math.min(b,v));
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const irnd=(a,b)=>Math.floor(rnd(a,b+1));
+const pick=(arr)=>arr[Math.floor(Math.random()*arr.length)];
+const round=Math.round;
+const SAVE_KEY="racketlife_save_v1";
+
+/* ---------------- Attribute schema ---------------- */
+const ATTR_GROUPS=[
+  {name:"身體素質",color:"#f5b642",keys:[
+    ["explosive","爆發力"],["stamina","耐力"],["agility","協調靈敏"],["durability","傷病抗性"]]},
+  {name:"技術指標",color:"#38bdf8",keys:[
+    ["smash","後場進攻"],["net","前場細節"],["placement","控球拉吊"],["defense","防守接殺"]]},
+  {name:"心理戰術",color:"#a78bfa",keys:[
+    ["clutch","大心態"],["composure","抗壓性"],["tactics","戰術理解"],["will","戰鬥意志"]]},
+  {name:"隱藏天賦",color:"#f472b6",keys:[
+    ["touch","手感天賦"],["tension","磅數適應"],["fame","知名度"]]},
+];
+const ALL_KEYS=ATTR_GROUPS.flatMap(g=>g.keys.map(k=>k[0]));
+const LABEL={};ATTR_GROUPS.forEach(g=>g.keys.forEach(k=>LABEL[k[0]]=k[1]));
+
+/* Radar aggregates (6 axes) */
+const RADAR=[
+  ["進攻",p=>(p.attrs.smash*.7+p.attrs.explosive*.3)],
+  ["網前",p=>(p.attrs.net*.7+p.attrs.touch*.3)],
+  ["控球",p=>(p.attrs.placement*.7+p.attrs.tactics*.3)],
+  ["防守",p=>(p.attrs.defense*.7+p.attrs.agility*.3)],
+  ["體能",p=>(p.attrs.stamina*.7+p.attrs.durability*.3)],
+  ["心態",p=>(p.attrs.clutch*.5+p.attrs.composure*.3+p.attrs.will*.2)],
+];
+
+/* ---------------- Playstyles ---------------- */
+const STYLES={
+  attack:{name:"暴力進攻",icon:"💥",color:"#f87171",desc:"連續重殺破防，速戰速決但耗體能。"},
+  control:{name:"拉吊控球",icon:"🎯",color:"#38bdf8",desc:"高遠平抽拉開對手，消耗體能逼失誤。"},
+  defense:{name:"防守反擊",icon:"🛡️",color:"#34d399",desc:"穩健回擊、覆蓋全場，等待對方抓球失誤。"},
+};
+// counter chain: key beats value
+const BEATS={control:"attack",attack:"defense",defense:"control"};
+
+/* ---------------- Tournament levels ---------------- */
+const LEVELS=[
+  {id:"junior",  name:"青少年錦標賽", pts:0,    money:0,   fame:2,  rankReq:9999, rounds:2, oppLo:25,oppHi:45, junior:true},
+  {id:"ic",      name:"國際挑戰賽",   pts:1100, money:4000,fame:4,  rankReq:9999, rounds:3, oppLo:38,oppHi:58},
+  {id:"s100",    name:"Super 100",   pts:1700, money:8000,fame:6,  rankReq:250,  rounds:3, oppLo:45,oppHi:64},
+  {id:"s300",    name:"Super 300",   pts:5500, money:20000,fame:9, rankReq:120,  rounds:4, oppLo:52,oppHi:72},
+  {id:"s500",    name:"Super 500",   pts:9200, money:40000,fame:13,rankReq:60,   rounds:4, oppLo:58,oppHi:80},
+  {id:"s750",    name:"Super 750",   pts:12000,money:70000,fame:18,rankReq:32,   rounds:5, oppLo:64,oppHi:86},
+  {id:"s1000",   name:"Super 1000 · 全英",pts:15000,money:120000,fame:26,rankReq:16,rounds:5,oppLo:70,oppHi:92,major:"英"},
+  {id:"worlds",  name:"世界錦標賽",   pts:13000,money:100000,fame:30,rankReq:24,  rounds:6, oppLo:66,oppHi:94,major:"世錦"},
+  {id:"finals",  name:"世界巡迴賽總決賽",pts:12000,money:180000,fame:28,rankReq:8,rounds:4,oppLo:78,oppHi:95,major:"總決賽"},
+  {id:"olympic", name:"奧林匹克運動會",pts:14000,money:80000,fame:40,rankReq:20,  rounds:6, oppLo:68,oppHi:96,major:"奧運"},
+];
+const LEVEL_BY={};LEVELS.forEach(l=>LEVEL_BY[l.id]=l);
+
+/* Random opponent names */
+const OPP_FIRST=["Anders","Viktor","Kento","Chou","Lee","Ginting","Axelsen","Momota","Lin","Loh","Ng","Antonsen","Popov","Zhao","Shi","Kunlavut","Vitidsarn","Lakshya","Prannoy","Christie","Nishimoto","Weng","Li","Wang","Kodai","Sen","Naraoka"];
+const OPP_LAST=["","Jr.","","","","","","","","","",""];
+
+/* =========================================================================
+   GAME STATE
+   ========================================================================= */
+let P=null;   // player
+let M=null;   // current match context
+
+const Game={
+  newGame(){ Stats.bump(); Create.start(); },
+  continueGame(){
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw){ Feed.toast("沒有存檔","bad"); return; }
+    try{ P=JSON.parse(raw); P.ach=new Set(P.ach||[]); Hub.enter(); }
+    catch(e){ Feed.toast("存檔損毀","bad"); }
+  },
+  save(){
+    if(!P) return;
+    const clone=Object.assign({},P,{ach:[...P.ach]});
+    try{ localStorage.setItem(SAVE_KEY,JSON.stringify(clone)); }catch(e){}
+  },
+  deleteSave(){
+    if(!localStorage.getItem(SAVE_KEY)){ Feed.toast("沒有可刪除的生涯存檔","bad"); return; }
+    let who="目前的生涯";
+    try{ const s=JSON.parse(localStorage.getItem(SAVE_KEY)); who=`${s.name}（${s.age}歲）`; }catch(e){}
+    Modal.open(`
+      <div class="center"><div class="emoji">🗑️</div></div>
+      <h2 style="text-align:center">刪除生涯存檔？</h2>
+      <div class="desc">將永久刪除 <b>${who}</b> 的生涯進度，此動作<b style="color:var(--red2)">無法復原</b>。（全球統計數字不受影響）</div>
+      <button class="btn primary" style="border-color:#4a1c1c;color:var(--red2)" onclick="Game.confirmDelete()">確定刪除</button>
+      <button class="btn ghost" onclick="Modal.close()">取消</button>`, true);
+  },
+  confirmDelete(){
+    localStorage.removeItem(SAVE_KEY);
+    P=null; Modal.close();
+    Feed.toast("🗑️ 生涯存檔已刪除","good");
+    UI.refreshTitle();
+    UI.show("s-title");
+  },
+};
+
+/* =========================================================================
+   UI helpers
+   ========================================================================= */
+const UI={
+  show(id){
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
+    $(id).classList.add("on");
+    window.scrollTo(0,0);
+    Game.save&&Game.save();
+    UI.refreshTitle();
+  },
+  refreshTitle(){
+    const has=!!localStorage.getItem(SAVE_KEY);
+    const del=$("btn-delete"); if(del) del.style.display=has?"block":"none";
+    const b=$("btn-continue"); if(!b) return;
+    b.disabled=!has;
+    if(has){
+      try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));
+        const rk = s.age<15?"青少年":(s.rank>=9999?"未排名":"#"+s.rank);
+        $("cont-sub").textContent=`— ${s.name} · ${s.age}歲 · ${rk}`;}catch(e){}
+    } else $("cont-sub").textContent="（尚無）";
+  },
+  hubTab(t){
+    ["season","profile","history","ach"].forEach(x=>$("tab-"+x).classList.toggle("on",x===t));
+    Hub.renderBody(t);
+  }
+};
+
+const Feed={
+  toast(msg,kind="",ms=2600){
+    const d=document.createElement("div");
+    d.className="toast "+kind; d.innerHTML=msg;
+    $("feed").appendChild(d);
+    setTimeout(()=>{d.style.transition="opacity .4s";d.style.opacity="0";setTimeout(()=>d.remove(),400);},ms);
+  }
+};
+
+/* =========================================================================
+   CHARACTER CREATION  (childhood chain)
+   ========================================================================= */
+const Create={
+  step:0, draft:null,
+  start(){
+    this.draft={name:"", hand:null, family:null, coach:null};
+    this.step=0; UI.show("s-create"); this.render();
+  },
+  render(){
+    const b=$("create-body"); const d=this.draft;
+    if(this.step===0){ // name + hand
+      b.innerHTML=`
+        <div class="card">
+          <h3 style="color:var(--neon)">6 歲 · 習慣養成</h3>
+          <p class="sub small" style="margin:8px 0 14px">為你的球員命名，並選擇主用手。左手線路刁鑽、對手不適應，但球具與教學資源較少。</p>
+          <div style="display:flex;gap:8px;margin-bottom:14px">
+            <input id="pname" maxlength="10" placeholder="球員名字（例：林小羽）"
+              style="flex:1;min-width:0;padding:12px;border-radius:12px;background:#0a0b0e;border:1px solid var(--line2);color:var(--ink);font-size:15px;font-weight:700">
+            <button onclick="Create.rollName()" title="隨機名字"
+              style="flex:0 0 auto;width:52px;border-radius:12px;background:linear-gradient(180deg,#20242c,#181b21);border:1px solid var(--line2);color:var(--neon);font-size:22px;cursor:pointer">🎲</button>
+          </div>
+          <div class="row">
+            <button class="btn" data-h="right" onclick="Create.setHand('right',this)">🫱 右手<span class="sub">球具適應性佳、教學資源多</span></button>
+            <button class="btn" data-h="left" onclick="Create.setHand('left',this)">🫲 左手<span class="sub">線路刁鑽 網前+ / 資源少</span></button>
+          </div>
+        </div>
+        <button class="btn primary" onclick="Create.next0()">下一步 ▶</button>`;
+    }
+    if(this.step===1){ // family
+      b.innerHTML=`
+        <div class="card">
+          <h3 style="color:var(--neon)">6–8 歲 · 家庭資源</h3>
+          <p class="sub small" style="margin:8px 0 14px">你出身於什麼樣的家庭？這決定了起始資源與心理底色。</p>
+          ${this.optCard("family","common","🏠 平民家庭","裝備較差，但為改變命運全力以赴。",{will:12,determination:8,money:-1},"意志+ 器材-")}
+          ${this.optCard("family","elite","🏆 羽球世家","耳濡目染、資源充沛，但背負期待壓力。",{touch:10,tactics:10,composure:-6},"手感+ 戰術+ 抗壓-")}
+          ${this.optCard("family","athletic","🏃 運動員家庭","身體天賦優異，技術需從頭磨。",{explosive:9,stamina:9,durability:6,touch:-4},"身體素質+ 天賦-")}
+        </div>
+        <button class="btn primary" onclick="Create.next1()">下一步 ▶</button>
+        <button class="btn ghost" onclick="Create.back(0)">◀ 上一步</button>`;
+    }
+    if(this.step===2){ // coach 9-11
+      b.innerHTML=`
+        <div class="card">
+          <h3 style="color:var(--neon)">9–11 歲 · 啟蒙教練</h3>
+          <p class="sub small" style="margin:8px 0 14px">你的第一位教練，將奠定你未來的技術骨架。</p>
+          ${this.optCard("coach","basic","📐 嚴格基本功型","步法與耐力打底扎實，但童年少了點樂趣。",{stamina:14,agility:12,defense:8,composure:-5},"步法/耐力++ 心態-")}
+          ${this.optCard("coach","talent","✨ 靈活天賦型","釋放進攻與手感，但身體保護較弱。",{smash:14,net:10,touch:6,durability:-8},"進攻/網前++ 傷病抗性-")}
+          ${this.optCard("coach","allround","⚖️ 全面均衡型","各項穩定成長，無明顯短板也無突出長板。",{placement:8,tactics:8,defense:6,smash:5},"全項小幅+")}
+        </div>
+        <button class="btn primary" onclick="Create.next2()">下一步 ▶</button>
+        <button class="btn ghost" onclick="Create.back(1)">◀ 上一步</button>`;
+    }
+    if(this.step===3){ // style + summary
+      const d=this.draft;
+      b.innerHTML=`
+        <div class="card">
+          <h3 style="color:var(--neon)">選定初始打法傾向</h3>
+          <p class="sub small" style="margin:8px 0 14px">往後仍可隨屬性與年齡轉型，但這決定你現在的克制關係。</p>
+          ${Object.entries(STYLES).map(([k,s])=>`
+            <div class="opt" onclick="Create.setStyle('${k}',this)" data-s="${k}">
+              <div class="ot" style="color:${s.color}">${s.icon} ${s.name}</div>
+              <div class="oe" style="color:var(--sub)">${s.desc}</div>
+            </div>`).join("")}
+        </div>
+        <button class="btn primary" onclick="Create.finish()">🏸 開始生涯（12 歲展望）▶</button>
+        <button class="btn ghost" onclick="Create.back(2)">◀ 上一步</button>`;
+    }
+  },
+  optCard(group,val,title,desc,eff,tag){
+    const chips=Object.entries(eff).map(([k,v])=>{
+      const lab=k==="money"?"資源":(LABEL[k]||k);
+      const cls=v>0?"up":"dn";
+      return `<span class="chip ${cls}">${lab}${v>0?"+":""}${v}</span>`;
+    }).join("");
+    return `<div class="opt" data-g="${group}" data-v="${val}" onclick="Create.setOpt('${group}','${val}',this)">
+      <div class="ot">${title} <span class="pill neon" style="float:right">${tag}</span></div>
+      <div class="oe" style="color:var(--sub);display:block;margin-top:6px">${desc}</div>
+      <div class="oe" style="margin-top:8px">${chips}</div>
+    </div>`;
+  },
+  setHand(h,el){ this.draft.hand=h;
+    el.parentNode.querySelectorAll(".btn").forEach(x=>x.style.borderColor="var(--line2)");
+    el.style.borderColor="var(--neon)"; },
+  setStyle(k,el){ this.draft.style=k;
+    document.querySelectorAll('[data-s]').forEach(x=>x.style.borderColor="var(--line2)");
+    el.style.borderColor="var(--neon)"; },
+  setOpt(g,v,el){ this.draft[g]=v;
+    el.parentNode.querySelectorAll(`[data-g="${g}"]`).forEach(x=>x.style.borderColor="var(--line2)");
+    el.style.borderColor="var(--neon)"; },
+  rollName(){
+    const sur="林王李陳張黃周吳劉蔡楊許鄭謝洪郭曾廖賴徐潘蘇葉呂";
+    const given=["資穎","天成","齊麟","子維","玄智","佳馨","芷宵","恩慈","博涵","相榤",
+      "哲輝","敬恒","宏蔚","碩芸","允澤","小羽","俊傑","柏翰","承恩","冠廷",
+      "宇軒","詩涵","雅婷","品妍","昱翔","彥廷","思妤","家豪","子恩","偉宸",
+      "凱翔","若彤","泓睿","孟潔","建宏","雨潔","浩軒","心妍"];
+    const name=sur[Math.floor(Math.random()*sur.length)]+given[Math.floor(Math.random()*given.length)];
+    const el=$("pname"); if(el){ el.value=name; this.draft.name=name; }
+  },
+  next0(){
+    const n=$("pname").value.trim();
+    if(!n){ Feed.toast("請先輸入名字","bad"); return; }
+    if(!this.draft.hand){ Feed.toast("請選擇主用手","bad"); return; }
+    this.draft.name=n; this.step=1; this.render();
+  },
+  next1(){
+    if(!this.draft.family){ Feed.toast("請選擇家庭資源","bad"); return; }
+    this.step=2; this.render();
+  },
+  next2(){
+    if(!this.draft.coach){ Feed.toast("請選擇啟蒙教練","bad"); return; }
+    this.step=3; this.render();
+  },
+  back(step){ this.step=step; this.render(); this.restoreSel(); },
+  restoreSel(){
+    // re-highlight previously chosen options after re-render
+    const d=this.draft;
+    if(this.step===0){
+      if(d.name){ const el=$("pname"); if(el) el.value=d.name; }
+      if(d.hand){ const b=document.querySelector(`[data-h="${d.hand}"]`); if(b) b.style.borderColor="var(--neon)"; }
+    }
+    ["family","coach"].forEach(g=>{
+      if(d[g]){ const el=document.querySelector(`[data-g="${g}"][data-v="${d[g]}"]`); if(el) el.style.borderColor="var(--neon)"; }
+    });
+    if(d.style){ const el=document.querySelector(`[data-s="${d.style}"]`); if(el) el.style.borderColor="var(--neon)"; }
+  },
+  finish(){
+    if(!this.draft.style){ Feed.toast("請選擇打法","bad"); return; }
+    Create.build();
+  },
+  build(){
+    const d=this.draft;
+    // base attrs
+    const A={}; ALL_KEYS.forEach(k=>A[k]=irnd(28,38));
+    A.touch=irnd(30,50); A.fame=3; A.tension=irnd(35,50);
+    // hand
+    if(d.hand==="left"){ A.net+=6; A.placement+=4; A.tension-=4; }
+    // apply family
+    const fam={common:{will:12,determination:8},elite:{touch:10,tactics:10,composure:-6},athletic:{explosive:9,stamina:9,durability:6,touch:-4}}[d.family]||{};
+    // note: 'determination' merged into 'will'
+    for(const[k,v]of Object.entries(fam)){ const key=k==="determination"?"will":k; A[key]=(A[key]||0)+v; }
+    let money=d.family==="common"?1500:d.family==="elite"?9000:4000;
+    // coach
+    const co={basic:{stamina:14,agility:12,defense:8,composure:-5},talent:{smash:14,net:10,touch:6,durability:-8},allround:{placement:8,tactics:8,defense:6,smash:5}}[d.coach]||{};
+    for(const[k,v]of Object.entries(co)) A[k]=(A[k]||0)+v;
+    ALL_KEYS.forEach(k=>A[k]=clamp(round(A[k])));
+    // talent caps: touch-driven soft caps for net & placement
+    const caps={}; ALL_KEYS.forEach(k=>caps[k]=clamp(A[k]+irnd(28,52)));
+    caps.net=clamp(caps.net+Math.round((A.touch-40)*0.5));
+    caps.placement=clamp(caps.placement+Math.round((A.touch-40)*0.4));
+
+    P={
+      name:d.name, hand:d.hand, family:d.family, coach:d.coach,
+      style:d.style, discipline:"singles", partner:null,
+      age:12, year:2026, level:"school",
+      attrs:A, caps,
+      stamina:100, morale:78,
+      rank:9999, points:0, money, // BWF points accumulator
+      racket:{brand:"—", tension:24, line:"BG-65"},
+      injuries:[], injuryWrist:0, injuryKnee:0, injured:null, injuryCount:0,
+      seasonPlayed:false, restsLeft:5, owned:[],
+      titles:[], // {level, year}
+      history:[], seasonW:0, seasonL:0,
+      careerWins:0, careerLosses:0,
+      bestRank:9999, everNo1:false, everFinal:false,
+      majorTitles:{}, // olympic/worlds/finals/s1000...
+      partnerHistory:0,
+      log:[], ach:new Set(),
+      milestonesDone:{}, phase:"youth",
+      retired:false, seasonNo:0,
+    };
+    Feed.toast(`🏸 ${P.name} 的羽球之路自 12 歲展開`,"good");
+    Hub.enter();
+  }
+};
+
+/* =========================================================================
+   HUB
+   ========================================================================= */
+const Hub={
+  enter(){ P.ach=P.ach instanceof Set?P.ach:new Set(P.ach||[]);
+    UI.show("s-hub"); this.renderHeader(); UI.hubTab("season"); this.checkMilestones(); Game.save();
+    Ticker.build(P.year); },
+  phaseName(){ const a=P.age;
+    if(a<=11) return "童年啟蒙"; if(a<=15) return "青少年轉折";
+    if(a<=22) return "職業初登場"; if(a<=28) return "黃金巔峰期"; return "老將終局"; },
+  levelName(){ return {school:"校隊/俱樂部",prov:"省隊/青訓",nat2:"國家二隊",nat1:"國家一隊"}[P.level]||P.level; },
+  rankText(){ if(P.age<15) return "青少年"; return P.rank>=9999?"未排名":"#"+P.rank; },
+  renderHeader(){
+    const stamCls=P.stamina<15?"crit":P.stamina<30?"warn":"";
+    $("hub-hdr").innerHTML=`
+      <div class="top">
+        <div>
+          <div class="who">${P.name} <span class="pill ${P.hand==='left'?'sky':''}" style="margin-left:6px">${P.hand==='left'?'左手':'右手'} · ${STYLES[P.style].icon}${STYLES[P.style].name}</span></div>
+          <div class="meta">AGE ${P.age} · ${P.year} 賽季 · ${this.levelName()} · ${this.phaseName()}</div>
+        </div>
+        <div class="rank">世界排名<br><b class="mono" style="${P.age<15?'font-size:13px;color:var(--sky)':''}">${this.rankText()}</b></div>
+      </div>
+      <div class="bars">
+        <div class="bar stam ${stamCls}"><div class="lab"><span>體能</span><span class="mono">${round(P.stamina)}%</span></div>
+          <div class="track"><div class="fill" style="width:${clamp(P.stamina)}%"></div></div></div>
+        <div class="bar mor"><div class="lab"><span>心態</span><span class="mono">${round(P.morale)}%</span></div>
+          <div class="track"><div class="fill" style="width:${clamp(P.morale)}%"></div></div></div>
+      </div>`;
+  },
+  renderBody(tab){
+    if(tab==="season") return this.season();
+    if(tab==="profile") return this.profile();
+    if(tab==="history") return this.history();
+    if(tab==="ach") return this.achievements();
+  },
+  history(){
+    const b=$("hub-body");
+    const rankLabel=(s)=> s.age<15?"青少年":(s.rank>=9999?"未排名":"#"+s.rank);
+    const live={ year:P.year, age:P.age, rank:P.rank, points:Math.round(P.points),
+      w:P.seasonW||0, l:P.seasonL||0, titles:P.titles.filter(t=>t.year===P.year).length, live:true };
+    const series=(P.history||[]).concat([live]);
+    const best=P.bestRank>=9999?"—":"#"+P.bestRank;
+    b.innerHTML=`
+      <div class="grp" style="margin-top:0"><h3>世界排名走勢 · 生涯最高 ${best}</h3>
+        <div class="card" style="margin-top:0">
+          ${series.filter(s=>s.age>=15&&s.rank<9999).length>=1
+            ? `<canvas id="rankchart" width="600" height="220" style="width:100%;height:auto;display:block"></canvas>`
+            : `<div class="sub small">滿 15 歲、開始累積世界排名後，這裡會顯示排名折線圖。</div>`}
+        </div>
+      </div>
+      <div class="grp"><h3>逐季戰績</h3>
+        <div class="card" style="margin-top:0">
+          ${series.slice().reverse().map(s=>`<div class="kv">
+            <span class="k">${s.year} · ${s.age}歲${s.live?' <span class="pill sky" style="padding:1px 7px">本季</span>':''}</span>
+            <span class="v mono">${rankLabel(s)} · ${s.w}勝${s.l}敗${s.titles?` · 🏆${s.titles}`:''}</span></div>`).join("")}
+        </div>
+      </div>
+      <div class="grp"><h3>冠軍列表（${P.titles.length}）</h3>
+        <div class="card" style="margin-top:0">
+          ${P.titles.length
+            ? P.titles.slice().reverse().map(t=>`<div class="kv"><span class="k mono">${t.year}</span><span class="v small">🏆 ${t.name}</span></div>`).join("")
+            : '<div class="sub small">尚無冠軍 — 出賽奪冠後會列在這裡。</div>'}
+        </div>
+      </div>`;
+    if(series.filter(s=>s.age>=15&&s.rank<9999).length>=1) setTimeout(()=>this.drawRankChart(series),30);
+  },
+  drawRankChart(series){
+    const c=$("rankchart"); if(!c) return; const ctx=c.getContext("2d");
+    const W=c.width,H=c.height,padL=44,padR=16,padT=16,padB=26;
+    ctx.clearRect(0,0,W,H);
+    const pts=series.map((s,i)=>({i, r:(s.age<15||s.rank>=9999)?null:s.rank, year:s.year}));
+    const valid=pts.filter(p=>p.r!=null);
+    if(valid.length<1) return;
+    let rmin=Math.min(...valid.map(p=>p.r)), rmax=Math.max(...valid.map(p=>p.r));
+    if(rmax===rmin){ rmin=Math.max(1,rmin-5); rmax=rmax+5; }  // single point: give the axis some range
+    const n=series.length;
+    const X=i=> padL+(W-padL-padR)*(n<=1?0:i/(n-1));
+    const Y=r=> padT+(H-padT-padB)*((r-rmin)/(rmax-rmin)); // best(rmin) top
+    // gridlines + y labels (best top, worst bottom)
+    ctx.font="11px 'Noto Sans TC',sans-serif"; ctx.textBaseline="middle";
+    [rmin, Math.round((rmin+rmax)/2), rmax].forEach(r=>{
+      const y=Y(r);
+      ctx.strokeStyle="rgba(255,255,255,.06)"; ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
+      ctx.fillStyle="#9aa0ad"; ctx.textAlign="right"; ctx.fillText("#"+r, padL-6, y);
+    });
+    // area + line
+    ctx.beginPath();
+    valid.forEach((p,k)=>{ const x=X(p.i),y=Y(p.r); k?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+    ctx.strokeStyle="#d7ff32"; ctx.lineWidth=2.5; ctx.lineJoin="round"; ctx.stroke();
+    // vertices + year labels for first/last
+    ctx.fillStyle="#d7ff32";
+    valid.forEach(p=>{ ctx.beginPath(); ctx.arc(X(p.i),Y(p.r),3.2,0,7); ctx.fill(); });
+    ctx.fillStyle="#5f6672"; ctx.textAlign="center";
+    ctx.fillText(valid[0].year, X(valid[0].i), H-10);
+    ctx.fillText(valid[valid.length-1].year, X(valid[valid.length-1].i), H-10);
+  },
+  season(){
+    const b=$("hub-body");
+    const inj=P.injuryWrist>40||P.injuryKnee>40;
+    const disc = P.discipline==="doubles"
+      ? `雙打 · ${P.partner?P.partner.name:'—'}（默契 ${P.partner?round(P.partner.chem):'—'}）`
+      : "單打";
+    const rehab=Injury.blocked();
+    const forced=(P.restsLeft??5)<=0 && !rehab;   // 休整用完 → 強制出賽（復健中除外）
+    b.innerHTML=`
+      <div class="seasonrow">
+        <div class="col-info">
+          <div class="grp" style="margin-top:0"><h3>當前數據</h3>
+          <div class="card" style="margin-top:0">
+            <div class="kv"><span class="k">賽季</span><span class="v mono">第 ${P.seasonNo+1} 季 · ${P.year}</span></div>
+            <div class="kv"><span class="k">項目</span><span class="v">${disc}</span></div>
+            <div class="kv"><span class="k">積分</span><span class="v mono">${round(P.points).toLocaleString()} pts</span></div>
+            <div class="kv"><span class="k">資金</span><span class="v mono goldtext">$${round(P.money).toLocaleString()}</span></div>
+            <div class="kv"><span class="k">生涯戰績</span><span class="v mono">${P.careerWins}勝 ${P.careerLosses}敗</span></div>
+            <div class="kv"><span class="k">冠軍</span><span class="v mono">🏆 ${P.titles.length}</span></div>
+            ${P.injured?`<div class="kv"><span class="k" style="color:var(--red2)">傷病</span><span class="v" style="color:var(--red2)">${P.injured.name}${P.injured.block?`（復健剩 ${P.injured.weeksLeft} 週）`:'（可續戰）'}</span></div>`
+              :inj?`<div class="kv"><span class="k" style="color:var(--amber)">傷病負荷</span><span class="v" style="color:var(--amber)">${P.injuryWrist>40?'手腕 ':''}${P.injuryKnee>40?'膝蓋':''}需留意</span></div>`:""}
+          </div>
+          </div>
+        </div>
+        <div class="col-act">
+          <div class="grp" style="margin-top:0"><h3>本季行動</h3>
+            ${rehab?`<div class="forcebar">🚑 ${P.injured.name} 復健中 · 剩 ${P.injured.weeksLeft} 週<br><span style="font-weight:500;font-size:11px">休整 / 醫療可推進復健，康復後才能出賽</span></div>`
+              :forced?`<div class="forcebar">⚠️ 已休整 5 次，必須先出賽！</div>`:""}
+            <button class="btn primary" ${(forced||rehab)?'disabled':''} onclick="Train.open()">🏋️ 集訓（提升屬性 · 耗體能）
+              <span class="sub">選擇主攻方向強化，體能不足時效果打折</span>
+              <span class="tag">${P.seasonPlayed?'可再練':'開季'}</span></button>
+            <button class="btn primary" ${rehab?'disabled':''} onclick="Sched.open()">🏸 選擇賽程 · 出戰
+              <span class="sub">${rehab?'復健中無法出賽':forced?'唯一可用行動 — 前往賽場':'依世界排名解鎖更高級別賽事，贏取積分與獎金'}</span></button>
+            <button class="btn" ${forced?'disabled':''} onclick="Hub.rest()">${rehab?'🩹 復健休養':'🧘 休整一週'}（回體能 · 修復傷病）
+              <span class="sub">${rehab?'推進復健 -1 週 · 體能 +30 · 傷病 -15':'體能 +30 · 傷病 -15 · 但排名積分自然衰減'}</span>
+              ${rehab?'':`<span class="tag">剩 ${P.restsLeft??5} 次</span>`}</button>
+            <button class="btn" ${forced?'disabled':''} onclick="Shop.open()">🛒 商店（器材 · 訓練 · 醫療）
+              <span class="sub">${rehab?'買醫療可加速復健':'用資金換屬性、器材與傷病恢復'}</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grp"><h3>轉場</h3>
+        <button class="btn ghost" onclick="Hub.openStyleChange()">🔄 打法轉型（改變克制關係）
+          <span class="sub">目前：${STYLES[P.style].icon}${STYLES[P.style].name} · 適應新打法需時間（心態-6）</span></button>
+        <button class="btn ghost" ${forced?'disabled':''} onclick="Season.endYear()">⏭️ 結束本賽季 · 年終結算
+          <span class="sub">${forced?'出賽後才能結束賽季':'重算世界排名、年齡增長、身體變化與賽後事件'}</span></button>
+      </div>
+      <div class="tapnote">提示：${forced?'休整次數已用盡，本階段只能出賽。':this.tip()}</div>`;
+  },
+  tip(){
+    if(P.stamina<25) return "體能偏低，先休整再出戰以免受傷。";
+    if(P.rank>250&&P.age>18) return "多打國際挑戰賽累積積分，才能解鎖 Super 系列。";
+    if(P.age>=29) return "身體開始下滑，考慮把打法轉型為拉吊控球。";
+    if(P.discipline==="singles"&&P.age<=13) return "青少年期可考慮分流雙打，開啟搭檔系統。";
+    return "克制鏈：拉吊克進攻、進攻克防守、防守克拉吊。";
+  },
+  rest(){
+    if(P.restsLeft==null) P.restsLeft=5;
+    const rehab=Injury.blocked();
+    if(!rehab && P.restsLeft<=0){ Feed.toast("本階段休整次數已用完，先出賽再恢復","bad"); return; }
+    if(!rehab) P.restsLeft--;           // rehab rest doesn't consume the match-prep limit
+    P.stamina=clamp(P.stamina+30); P.morale=clamp(P.morale+6);
+    P.injuryWrist=clamp(P.injuryWrist-15,0,100); P.injuryKnee=clamp(P.injuryKnee-15,0,100);
+    P.points=Math.round(P.points*0.97);
+    Injury.progress(1);
+    Feed.toast(rehab?`🧘 復健中，傷勢好轉${P.injured?`（剩 ${P.injured.weeksLeft} 週）`:''}`:`🧘 休整完成，體能與傷勢恢復（剩 ${P.restsLeft} 次）`,"good");
+    this.renderHeader(); this.season(); Game.save();
+  },
+  profile(){
+    const b=$("hub-body");
+    b.innerHTML=`
+      <div class="profilerow">
+        <div class="p-left">
+          <div class="card" style="margin-top:0">
+            <div style="text-align:center"><canvas id="radar" width="380" height="380"></canvas></div>
+            <div class="tapnote">外圈=天賦上限 · 內圈=目前屬性</div>
+          </div>
+          <div class="grp"><h3>器材與狀態</h3>
+            <div class="card" style="margin-top:0">
+              <div class="kv"><span class="k">器材</span><span class="v small">${P.racket.brand} · ${P.racket.tension}磅 · ${P.racket.line}</span></div>
+              <div class="kv"><span class="k">磅數適應</span><span class="v mono">${P.attrs.tension}</span></div>
+              <div class="kv"><span class="k">知名度</span><span class="v mono">${P.attrs.fame}</span></div>
+              <div class="kv"><span class="k">手腕負荷</span><span class="v mono" style="color:${P.injuryWrist>40?'var(--red2)':'var(--sub)'}">${round(P.injuryWrist)}%</span></div>
+              <div class="kv"><span class="k">膝蓋負荷</span><span class="v mono" style="color:${P.injuryKnee>40?'var(--red2)':'var(--sub)'}">${round(P.injuryKnee)}%</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="p-right">
+          <div class="grp" style="margin-top:0"><h3>綜合能力</h3>
+            <div class="card" style="margin-top:0"><div class="statlist">${RADAR.map(([n,f])=>{
+              const v=round(f(P));
+              return `<div class="statrow"><span class="sub">${n}</span><span class="sbar"><i style="width:${clamp(v)}%"></i></span><span class="v mono">${v}</span></div>`;
+            }).join("")}</div></div>
+          </div>
+          ${this.attrGroupHtml(ATTR_GROUPS[0])}
+          <button class="btn ghost" onclick="Hub.showAttrs()" style="text-align:center">
+            ▼ 查看完整屬性
+            <span class="sub">技術指標 · 心理戰術 · 隱藏天賦</span></button>
+        </div>
+      </div>
+    `;
+    setTimeout(()=>Radar.draw(),30);
+  },
+  attrGroupHtml(g){
+    return `<div class="grp"><h3 style="color:${g.color}">${g.name}</h3>
+      <div class="attrgrid">${g.keys.map(([k,lab])=>`
+        <div class="attr"><div class="t"><span>${lab}</span><b>${P.attrs[k]}<span class="dim" style="font-weight:400"> /${P.caps[k]}</span></b></div>
+          <div class="mini"><i style="width:${clamp(P.attrs[k])}%"></i></div></div>`).join("")}
+      </div></div>`;
+  },
+  showAttrs(){
+    $("attrs-body").innerHTML=`
+      <div class="grp" style="margin-top:0"><h3>綜合能力</h3>
+        <div class="card" style="margin-top:0"><div class="statlist">${RADAR.map(([n,f])=>{
+          const v=round(f(P));
+          return `<div class="statrow"><span class="sub">${n}</span><span class="sbar"><i style="width:${clamp(v)}%"></i></span><span class="v mono">${v}</span></div>`;
+        }).join("")}</div></div>
+      </div>
+      ${ATTR_GROUPS.map(g=>this.attrGroupHtml(g)).join("")}`;
+    UI.show("s-attrs");
+  },
+  backFromAttrs(){ UI.show("s-hub"); UI.hubTab("profile"); },
+  openStyleChange(){
+    const html=`<h2>🔄 打法轉型</h2>
+      <div class="desc">改變主打風格會改變克制關係（拉吊克進攻、進攻克防守、防守克拉吊）。轉型需時間適應，心態 -6。目前：<b style="color:${STYLES[P.style].color}">${STYLES[P.style].name}</b></div>
+      ${Object.entries(STYLES).map(([k,s])=>`
+        <div class="opt" onclick="Hub.setStyle('${k}')">
+          <div class="ot" style="color:${s.color}">${s.icon} ${s.name}${k===P.style?' <span class="pill" style="float:right">目前</span>':''}</div>
+          <div class="oe" style="color:var(--sub);display:block;margin-top:5px">${s.desc}</div>
+        </div>`).join("")}
+      <button class="btn ghost" onclick="Modal.close()" style="margin-top:10px">取消</button>`;
+    Modal.open(html);
+  },
+  setStyle(k){
+    Modal.close();
+    if(k===P.style){ return; }
+    P.style=k; P.styleTransformed=true; P.morale=clamp(P.morale-6);
+    Feed.toast(`🦋 打法轉型為「${STYLES[k].name}」，開始適應新風格（心態-6）`,"good",3200);
+    Achievements.check();
+    this.renderHeader(); this.season(); Game.save();
+  },
+  achievements(){
+    const b=$("hub-body");
+    b.innerHTML=`<div class="card"><h3 style="color:var(--gold)">🏅 生涯圖鑑 <span class="sub small">（${P.ach.size}/${ACHIEVEMENTS.length}）</span></h3></div>
+      <div class="achgrid">${ACHIEVEMENTS.map(a=>{
+        const got=P.ach.has(a.id);
+        return `<div class="ach ${got?'got':''}"><div class="ico">${got?a.icon:'❔'}</div>
+          <div class="an">${got?a.name:'???'}</div><div class="ad">${a.desc}</div></div>`;
+      }).join("")}</div>`;
+  },
+  /* milestone decision events at key ages */
+  checkMilestones(){
+    const m=P.milestonesDone;
+    if(P.age>=13 && !m.disc && P.discipline==="singles"){ m.disc=1; Events.fire("milestone_discipline"); return; }
+    if(P.age>=14 && !m.route){ m.route=1; Events.fire("milestone_route"); return; }
+    if(P.age>=16 && !m.sponsor){ m.sponsor=1; Events.fire("milestone_sponsor"); return; }
+    if(P.age>=12 && !m.growth){ m.growth=1; Events.fire("milestone_growth"); return; }
+  }
+};
+
+/* =========================================================================
+   RADAR CHART (canvas)
+   ========================================================================= */
+const Radar={
+  draw(){
+    const c=$("radar"); if(!c) return; const ctx=c.getContext("2d");
+    const W=c.width,H=c.height,cx=W/2,cy=H/2,R=W/2-40,N=RADAR.length;
+    ctx.clearRect(0,0,W,H);
+    // grid rings
+    for(let ring=1;ring<=4;ring++){
+      ctx.beginPath();
+      for(let i=0;i<=N;i++){const a=-Math.PI/2+i*2*Math.PI/N;const r=R*ring/4;
+        const x=cx+r*Math.cos(a),y=cy+r*Math.sin(a); i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+      ctx.strokeStyle="rgba(255,255,255,.06)";ctx.lineWidth=1;ctx.stroke();
+    }
+    // spokes + labels
+    ctx.font="600 18px 'Noto Sans TC',sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
+    for(let i=0;i<N;i++){const a=-Math.PI/2+i*2*Math.PI/N;
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+R*Math.cos(a),cy+R*Math.sin(a));
+      ctx.strokeStyle="rgba(255,255,255,.06)";ctx.stroke();
+      ctx.fillStyle="#9aa0ad";ctx.fillText(RADAR[i][0],cx+(R+22)*Math.cos(a),cy+(R+22)*Math.sin(a));
+    }
+    const poly=(fn,fill,stroke)=>{
+      ctx.beginPath();
+      for(let i=0;i<=N;i++){const idx=i%N;const a=-Math.PI/2+idx*2*Math.PI/N;
+        const v=clamp(fn(idx))/100;const r=R*v;const x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);
+        i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+      ctx.closePath();ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();
+    };
+    // caps polygon (approx via RADAR on caps)
+    const capP=Object.assign({},P,{attrs:P.caps});
+    poly(i=>RADAR[i][1](capP),"rgba(56,189,248,.06)","rgba(56,189,248,.35)");
+    poly(i=>RADAR[i][1](P),"rgba(215,255,50,.16)","rgba(215,255,50,.9)");
+    // vertices
+    for(let i=0;i<N;i++){const a=-Math.PI/2+i*2*Math.PI/N;const v=clamp(RADAR[i][1](P))/100;const r=R*v;
+      ctx.beginPath();ctx.arc(cx+r*Math.cos(a),cy+r*Math.sin(a),3,0,7);ctx.fillStyle="#d7ff32";ctx.fill();}
+  }
+};
+
+/* =========================================================================
+   TRAINING
+   ========================================================================= */
+const TRAIN_PLANS=[
+  {id:"power", name:"💥 力量與爆發", keys:["explosive","smash"], cost:26, wrist:6, knee:8, desc:"重殺初速、起跳突擊"},
+  {id:"endur", name:"🏃 體能耐力",   keys:["stamina","durability"], cost:20, knee:6, desc:"多拍拉鋸、抗傷病"},
+  {id:"foot",  name:"👟 步法靈敏",   keys:["agility","defense"], cost:24, knee:5, desc:"接殺覆蓋、二次啟動"},
+  {id:"net",   name:"🪶 網前細膩",   keys:["net","touch"], cost:16, wrist:3, desc:"搓放勾推、手感"},
+  {id:"ctrl",  name:"🎯 控球拉吊",   keys:["placement","tactics"], cost:18, desc:"線路落點、戰術腦"},
+  {id:"mind",  name:"🧠 心理抗壓",   keys:["clutch","composure","will"], cost:14, desc:"關鍵分穩定"},
+];
+const Train={
+  open(){
+    if(Injury.blocked()){ Feed.toast(`🚑 ${P.injured.name} 復健中，無法訓練`,"bad"); return; }
+    if((P.restsLeft??5)<=0){ Feed.toast("已休整 5 次，必須先出賽","bad"); return; }
+    const html=`
+      <h2>🏋️ 集訓計畫</h2>
+      <div class="desc">選擇本週主攻方向。體能越充足、離天賦上限越遠，成長越大。過猛會累積傷病負荷。</div>
+      ${TRAIN_PLANS.map(pl=>{
+        const room=pl.keys.some(k=>P.attrs[k]<P.caps[k]);
+        return `<div class="opt" onclick="Train.run('${pl.id}')">
+          <div class="ot">${pl.name} <span class="pill" style="float:right">體能-${pl.cost}</span></div>
+          <div class="oe" style="color:var(--sub);display:block;margin-top:5px">${pl.desc} · ${pl.keys.map(k=>LABEL[k]).join("／")}${room?"":' <span style="color:var(--amber)">(接近上限)</span>'}</div>
+        </div>`;
+      }).join("")}
+      <button class="btn ghost" onclick="Modal.close()" style="margin-top:12px">取消</button>`;
+    Modal.open(html);
+  },
+  run(id){
+    const pl=TRAIN_PLANS.find(x=>x.id===id);
+    Modal.close();
+    if(P.stamina<8){ Feed.toast("體能過低，先休整再訓練","bad"); return; }
+    const effFactor = P.stamina>=pl.cost?1 : 0.5; // fatigued -> half
+    let gained=[];
+    pl.keys.forEach(k=>{
+      const room=P.caps[k]-P.attrs[k];
+      if(room<=0){ return; }
+      let g=Math.max(1,Math.round((rnd(2.2,4.2))*effFactor*(0.5+room/60)));
+      g=Math.min(g,room);
+      P.attrs[k]=clamp(P.attrs[k]+g); gained.push(`${LABEL[k]}+${g}`);
+    });
+    P.stamina=clamp(P.stamina-pl.cost);
+    P.injuryWrist=clamp(P.injuryWrist+(pl.wrist||0)*(P.attrs.durability<40?1.4:1));
+    P.injuryKnee=clamp(P.injuryKnee+(pl.knee||0)*(P.attrs.durability<40?1.4:1));
+    P.morale=clamp(P.morale+(gained.length?2:-3));
+    P.seasonPlayed=true;
+    Feed.toast(gained.length?`🏋️ 集訓成效：${gained.join("、")}`:"已達上限，收效甚微","good");
+    Hub.renderHeader(); Hub.season(); Game.save();
+    // possible real injury from hard training
+    if(pl.wrist||pl.knee) Injury.maybeTrigger("train");
+  }
+};
+
+/* =========================================================================
+   SHOP — 資金消費出口（器材 / 穿線 / 訓練 / 醫療）
+   ========================================================================= */
+const SHOP=[
+  {id:"racket_zz",cat:"器材",name:"YONEX Astrox 100ZZ",cost:42000,once:true,
+    desc:"硬中管高彈殺球拍，後場火力全開。",eff:{smash:4,net:2},set:{brand:"YONEX 100ZZ"}},
+  {id:"racket_tk",cat:"器材",name:"VICTOR Thruster TK-F",cost:38000,once:true,
+    desc:"進攻兼顧手感，控球線路更深遠。",eff:{placement:4,tactics:2},set:{brand:"VICTOR TK-F"}},
+  {id:"racket_ax",cat:"器材",name:"LI-NING Axforce 100",cost:46000,once:true,
+    desc:"攻守均衡的全能旗艦拍。",eff:{smash:2,placement:2,defense:2},set:{brand:"LI-NING Axforce"}},
+  {id:"string_hi",cat:"穿線",name:"高磅數穿線 (31磅)",cost:3500,
+    desc:"球速更快，但手腕負荷上升。",eff:{smash:2},wrist:6,set:{tension:31}},
+  {id:"string_ctrl",cat:"穿線",name:"控球穿線 (27磅)",cost:2800,
+    desc:"善用彈性、線路更穩，兼護腕。",eff:{placement:2},wrist:-4,set:{tension:27}},
+  {id:"coach_power",cat:"訓練",name:"私人進攻教練",cost:16000,
+    desc:"專項強化後場進攻與爆發。",eff:{smash:2,explosive:2},stamina:-5},
+  {id:"coach_camp",cat:"訓練",name:"高強度訓練營",cost:32000,
+    desc:"全面提升體能與各項基礎。",eff:{stamina:2,durability:2,agility:1,defense:1},stamina:-8},
+  {id:"med_physio",cat:"醫療",name:"物理治療",cost:8000,rehab:1,
+    desc:"舒緩勞損、恢復體能，並加速復健（-1 週）。",heal:{wrist:25,knee:25,stamina:20}},
+  {id:"med_sports",cat:"醫療",name:"頂級運動醫學",cost:20000,rehab:2,
+    desc:"深度修復傷病、迅速回復狀態，大幅縮短復健（-2 週）。",heal:{wrist:50,knee:50,stamina:40,morale:6}},
+];
+const Shop={
+  effChips(s){
+    const c=[];
+    if(s.eff) for(const[k,v]of Object.entries(s.eff)) c.push(`<span class="chip up">${LABEL[k]||k}+${v}</span>`);
+    if(s.heal){ if(s.heal.wrist)c.push(`<span class="chip up">手腕-${s.heal.wrist}</span>`);
+      if(s.heal.knee)c.push(`<span class="chip up">膝蓋-${s.heal.knee}</span>`);
+      if(s.heal.stamina)c.push(`<span class="chip up">體能+${s.heal.stamina}</span>`);
+      if(s.heal.morale)c.push(`<span class="chip up">心態+${s.heal.morale}</span>`); }
+    if(s.wrist) c.push(`<span class="chip ${s.wrist>0?'risk':'up'}">手腕${s.wrist>0?'風險+':''}${s.wrist<0?s.wrist:s.wrist}</span>`);
+    if(s.stamina) c.push(`<span class="chip dn">體能${s.stamina}</span>`);
+    return c.join("");
+  },
+  open(){
+    const cats=["器材","穿線","訓練","醫療"];
+    $("shop-money").textContent=`資金 $${round(P.money).toLocaleString()}`;
+    $("shop-body").innerHTML=`
+      <div class="tapnote" style="text-align:left;margin:0 0 8px">器材限購一次（永久加成）；訓練與醫療不佔休整次數，醫療還能加速復健。</div>
+      ${cats.map(c=>`<div class="grp" style="margin-top:8px"><h3>${c}</h3>${SHOP.filter(s=>s.cat===c).map(s=>{
+        const owned=s.once&&(P.owned||[]).includes(s.id);
+        const afford=P.money>=s.cost;
+        return `<div class="opt" ${(owned||!afford)?'style="opacity:.5"':''} onclick="${(owned||!afford)?'':`Shop.buy('${s.id}')`}">
+          <div class="ot">${s.name} <span class="pill ${afford&&!owned?'gold':''}" style="float:right">${owned?'已擁有':'$'+s.cost.toLocaleString()}</span></div>
+          <div class="oe" style="color:var(--sub);display:block;margin:5px 0">${s.desc}</div>
+          <div class="oe">${this.effChips(s)}</div>
+        </div>`;
+      }).join("")}</div>`).join("")}`;
+    UI.show("s-shop");
+  },
+  back(){ UI.show("s-hub"); UI.hubTab("season"); },
+  buy(id){
+    const s=SHOP.find(x=>x.id===id); if(!s) return;
+    if(P.money<s.cost){ Feed.toast("資金不足","bad"); return; }
+    if(s.once&&(P.owned||[]).includes(id)) return;
+    P.money-=s.cost;
+    if(s.eff) for(const[k,v]of Object.entries(s.eff)) if(k in P.attrs) P.attrs[k]=clamp(P.attrs[k]+v);
+    if(s.wrist) P.injuryWrist=clamp(P.injuryWrist+s.wrist);
+    if(s.stamina) P.stamina=clamp(P.stamina+s.stamina);
+    if(s.heal){
+      if(s.heal.wrist) P.injuryWrist=clamp(P.injuryWrist-s.heal.wrist);
+      if(s.heal.knee)  P.injuryKnee=clamp(P.injuryKnee-s.heal.knee);
+      if(s.heal.stamina) P.stamina=clamp(P.stamina+s.heal.stamina);
+      if(s.heal.morale) P.morale=clamp(P.morale+s.heal.morale);
+    }
+    if(s.set){ if(s.set.brand)P.racket.brand=s.set.brand; if(s.set.tension)P.racket.tension=s.set.tension; }
+    if(s.rehab) Injury.progress(s.rehab);   // medical treatment speeds rehab
+    if(s.once){ P.owned=P.owned||[]; P.owned.push(id); }
+    Feed.toast(`🛒 已購買「${s.name}」`,"good");
+    Hub.renderHeader(); this.open(); Game.save();
+  }
+};
+
+/* =========================================================================
+   INJURY — 傷病事件系統（受傷 / 復健 / 賽季報銷）
+   ========================================================================= */
+const INJURIES={
+  minor:[
+    {name:"手腕發炎",part:"wrist",weeks:1,stam:-15,load:-25,pen:0.05,desc:"密集賽事後手腕發炎腫脹，尚可上場但發力受影響。"},
+    {name:"腳踝輕微扭傷",part:"knee",weeks:1,stam:-15,load:-25,pen:0.05,desc:"落地時腳踝輕扭，移動略受限，仍可勉強出賽。"},
+  ],
+  moderate:[
+    {name:"大腿肌肉拉傷",part:"knee",weeks:2,stam:-30,load:-40,pen:0.10,block:true,desc:"急停時大腿後側拉傷，必須復健，暫時無法出賽。"},
+    {name:"手腕肌腱炎",part:"wrist",weeks:2,stam:-25,load:-45,pen:0.10,block:true,desc:"手腕肌腱嚴重發炎，握拍發力受限，需休養復健。"},
+  ],
+  major:[
+    {name:"膝蓋前十字韌帶撕裂",part:"knee",weeks:4,stam:-45,load:-60,block:true,seasonEnd:true,
+      perm:{explosive:-3,agility:-3},desc:"重傷！前十字韌帶撕裂，本賽季報銷、需長期復健，爆發力與靈敏將永久受損。"},
+    {name:"手腕應力性骨裂",part:"wrist",weeks:3,stam:-40,load:-60,block:true,seasonEnd:true,
+      perm:{smash:-3,net:-2},desc:"重傷！手腕應力性骨裂，本賽季報銷，殺球與網前手感將永久下滑。"},
+  ],
+};
+const Injury={
+  blocked(){ return !!(P.injured && P.injured.block); },
+  maybeTrigger(context){
+    if(P.injured) return false;
+    const load=Math.max(P.injuryWrist,P.injuryKnee), dur=P.attrs.durability;
+    let chance = load>=75?0.30 : load>=55?0.15 : load>=40?0.07 : 0.02;
+    chance *= (1 + (50-dur)/100);       // low durability raises risk (up to ~+50%)
+    if(context==="train") chance*=0.6;
+    if(Math.random()<chance){ this.occur(); return true; }
+    return false;
+  },
+  occur(){
+    const part = P.injuryWrist>=P.injuryKnee?"wrist":"knee";
+    const load = Math.max(P.injuryWrist,P.injuryKnee);
+    const roll = load + rnd(-12,22) - (P.attrs.durability-50)*0.4;
+    const sev = roll>=82?"major" : roll>=48?"moderate" : "minor";
+    let pool=INJURIES[sev].filter(x=>x.part===part); if(!pool.length) pool=INJURIES[sev];
+    const inj=pick(pool);
+    P.stamina=clamp(P.stamina+inj.stam);
+    if(part==="wrist") P.injuryWrist=clamp(P.injuryWrist+inj.load); else P.injuryKnee=clamp(P.injuryKnee+inj.load);
+    P.morale=clamp(P.morale-(sev==="major"?20:sev==="moderate"?10:4));
+    if(inj.perm) for(const[k,v]of Object.entries(inj.perm)){ P.attrs[k]=clamp(P.attrs[k]+v); P.caps[k]=clamp(P.caps[k]+v); }
+    if(inj.seasonEnd) P.points=Math.round(P.points*0.9);
+    P.injured={ name:inj.name, part, sev, weeksLeft:inj.weeks, pen:inj.pen||0, block:!!inj.block, seasonEnd:!!inj.seasonEnd, desc:inj.desc };
+    P.injuryCount=(P.injuryCount||0)+1;
+    const chips=[`<span class="chip dn">體能${inj.stam}</span>`,
+      `<span class="chip risk">復健 ${inj.weeks} 週</span>`,
+      ...(inj.perm?Object.entries(inj.perm).map(([k,v])=>`<span class="chip dn">${LABEL[k]}${v}（永久）</span>`):[])];
+    const sevName=sev==="major"?"重傷":sev==="moderate"?"中傷":"輕傷";
+    const sevColor=sev==="major"?"var(--red2)":sev==="moderate"?"var(--amber)":"var(--sky)";
+    Modal.open(`
+      <div class="center"><div class="emoji">🚑</div></div>
+      <h2 style="text-align:center;color:${sevColor}">${sevName} · ${inj.name}</h2>
+      <div class="desc">${inj.desc}</div>
+      <div class="oe" style="justify-content:center;margin-bottom:16px">${chips.join(" ")}</div>
+      <button class="btn primary" onclick="Injury.ack()">${inj.seasonEnd?'接受賽季報銷 ▶':(inj.block?'進入復健 ▶':'咬牙撐住 ▶')}</button>`, true);
+  },
+  ack(){
+    Modal.close();
+    Feed.toast(`🚑 ${P.injured.name}${P.injured.block?'，進入復健期':'（可續戰但狀態下降）'}`,"bad",3400);
+    Achievements.check();
+    Hub.renderHeader();
+    if($("s-hub").classList.contains("on")) UI.hubTab("season");
+    Game.save();
+  },
+  progress(weeks){
+    if(!P.injured) return;
+    P.injured.weeksLeft-=weeks;
+    if(P.injured.weeksLeft<=0){
+      const nm=P.injured.name; P.injured=null;
+      Feed.toast(`💪 ${nm} 傷癒復出！`,"good",3200);
+    }
+  }
+};
+
+/* =========================================================================
+   SCHEDULE / choose tournament
+   ========================================================================= */
+const Sched={
+  open(){
+    if(Injury.blocked()){ Feed.toast(`🚑 ${P.injured.name} 復健中（剩 ${P.injured.weeksLeft} 週），無法出賽`,"bad"); return; }
+    const avail=LEVELS.filter(l=>{
+      if(l.id==="junior") return P.age<=15;          // junior circuit: 15 歲以下
+      if(P.age<15) return false;                      // 成人 BWF 賽事需滿 15 歲
+      if(l.major) return P.rank<=l.rankReq || P.rank<=(l.rankReq+8);
+      return P.rank<=l.rankReq;
+    });
+    // Always allow IC as floor for pros
+    if(!avail.find(l=>l.id==="ic") && P.age>=15) avail.unshift(LEVEL_BY.ic);
+    const isJr = P.age<15;
+    const html=`
+      <h2>🏸 選擇賽程</h2>
+      <div class="desc">${isJr
+        ? `你目前 <b>${P.age}</b> 歲，只能出戰<b style="color:var(--sky)">青少年賽</b>累積經驗與屬性；滿 <b>15 歲</b>才能打成人 BWF 賽事、開始計入世界排名。`
+        : `依世界排名 <b class="mono">${Hub.rankText()}</b> 解鎖賽事。級別越高積分獎金越多，但對手更強、耗體能更大。奪冠可累積生涯冠軍與稱號。`}</div>
+      ${avail.map(l=>{
+        const locked=false;
+        return `<div class="opt" onclick="Sched.enter('${l.id}')">
+          <div class="ot">${l.major?`<span class="pill gold" style="float:right">大賽</span>`:""}${l.name}</div>
+          <div class="oe" style="margin-top:7px">
+            <span class="chip up">冠軍 +${l.pts.toLocaleString()}pts</span>
+            <span class="chip">獎金 $${(l.money/1000)}k</span>
+            <span class="chip risk">${l.rounds} 輪</span>
+            <span class="chip">對手 ${l.oppLo}-${l.oppHi}</span></div>
+        </div>`;
+      }).join("")}
+      <button class="btn ghost" onclick="Modal.close()" style="margin-top:12px">取消</button>`;
+    Modal.open(html);
+  },
+  enter(id){
+    Modal.close();
+    if(P.stamina<20){ Feed.toast("體能不足以出戰，先休整","bad"); return; }
+    Match.startTournament(LEVEL_BY[id]);
+  }
+};
+
+/* =========================================================================
+   MATCH ENGINE
+   ========================================================================= */
+/* in-match tactical decisions (2-choice, shown with success rate) */
+const MATCH_DECISIONS=[
+  {title:"該不該搏殺？",desc:"對手回球偏高、機會來了，但你已連續進攻多拍。",
+   options:[
+     {t:"起跳強力劈殺",hint:"高風險高回報 · 依後場進攻",
+      rate:p=>0.42+(p.attrs.smash+p.attrs.explosive-100)/260,
+      onSuccess:{momentum:0.16,momRallies:5,morale:3,log:"重殺得手，氣勢全在你這邊！"},
+      onFail:{pointOpp:1,wrist:5,log:"殺球出界，還震了一下手腕。"}},
+     {t:"穩住拉吊過渡",hint:"安全牌 · 依控球拉吊",
+      rate:p=>0.6+(p.attrs.placement+p.attrs.tactics-100)/300,
+      onSuccess:{momentum:0.07,momRallies:4,log:"你耐心過渡，重新掌握主動。"},
+      onFail:{stamYou:-4,log:"多磨了兩拍，體能小失血。"}},
+   ]},
+  {title:"鷹眼挑戰",desc:"一記壓線球被判界內，你覺得出界了。本局挑戰機會還有。",
+   options:[
+     {t:"提出鷹眼挑戰",hint:"賭一個 · 依大心態/抗壓",
+      rate:p=>0.45+(p.attrs.clutch+p.attrs.composure-100)/240,
+      onSuccess:{pointYou:1,morale:5,log:"鷹眼顯示出界！挑戰成功、比分到手。"},
+      onFail:{pointOpp:1,morale:-8,log:"球壓線上，挑戰失敗、心態受挫。"}},
+     {t:"接受判罰、專注下一球",hint:"穩健 · 依戰術理解",
+      rate:p=>0.62+(p.attrs.tactics-50)/260,
+      onSuccess:{momentum:0.05,momRallies:3,log:"你放下情緒，立刻回到節奏。"},
+      onFail:{morale:-3,log:"心裡還是有點不平。"}},
+   ]},
+  {title:"節奏抉擇",desc:"比賽陷入拉鋸，你想改變節奏打亂對手。",
+   options:[
+     {t:"提速強攻搶節奏",hint:"依協調/爆發",
+      rate:p=>0.44+(p.attrs.agility+p.attrs.explosive-100)/260,
+      onSuccess:{momentum:0.12,momRallies:4,stamYou:-4,log:"你把節奏拉快，對手跟不上！"},
+      onFail:{stamYou:-7,log:"提速失敗，反而自己先喘。"}},
+     {t:"放慢磨對手體能",hint:"依耐力/戰術",
+      rate:p=>0.55+(p.attrs.stamina+p.attrs.tactics-100)/300,
+      onSuccess:{stamOpp:-9,momentum:0.06,momRallies:4,log:"你用相持磨掉對手的體能。"},
+      onFail:{stamYou:-3,log:"對手比你想的更能磨。"}},
+   ]},
+  {title:"發球搏一把",desc:"關鍵發球，是否偷後場搏一個直接得分？",
+   options:[
+     {t:"偷發後場搏突襲",hint:"依戰術/手感",
+      rate:p=>0.4+(p.attrs.tactics+p.attrs.touch-100)/260,
+      onSuccess:{pointYou:1,momentum:0.06,momRallies:3,log:"偷發成功、直接得分！"},
+      onFail:{pointOpp:1,log:"被對手預判、反撲得分。"}},
+     {t:"穩定發網前小球",hint:"依前場細節",
+      rate:p=>0.66+(p.attrs.net-50)/260,
+      onSuccess:{momentum:0.04,momRallies:3,log:"發球到位，展開有利對攻。"},
+      onFail:{log:"發球稍高、被撲了一下但化解。"}},
+   ]},
+  {title:"體能博弈",desc:"你已明顯疲勞，是否賭上一波全力進攻？",
+   cond:()=>M.matchStamina&&M.matchStamina.you<45,
+   options:[
+     {t:"拚盡全力連續進攻",hint:"依戰鬥意志",
+      rate:p=>0.4+(p.attrs.will+p.attrs.smash-100)/260,
+      onSuccess:{momentum:0.18,momRallies:5,stamYou:-6,log:"你榨出最後的能量、打出一波高潮！"},
+      onFail:{stamYou:-12,wrist:4,log:"強行進攻卻收效不佳、體能大失。"}},
+     {t:"保存體力打相持",hint:"依防守/耐力",
+      rate:p=>0.58+(p.attrs.defense+p.attrs.stamina-100)/300,
+      onSuccess:{stamYou:6,momentum:0.04,momRallies:3,log:"你穩住陣腳、回了一口氣。"},
+      onFail:{stamYou:-3,log:"相持中還是被拉扯掉一些體能。"}},
+   ]},
+];
+const Match={
+  startTournament(level){
+    M={ level, round:0, done:false, speed:1, instant:false };
+    P.seasonPlayed=true;
+    this.nextRound();
+  },
+  renderPlayControls(){
+    const sp=M.speed||1;
+    $("match-foot").innerHTML=`<div class="row">
+      <button class="btn" onclick="Match.cycleSpeed()">⏩ 速度 ×${sp}</button>
+      <button class="btn" onclick="Match.skipGame()">⏭️ 跳到局末</button>
+    </div>`;
+  },
+  cycleSpeed(){
+    const seq=[1,2,4,8]; const i=seq.indexOf(M.speed||1);
+    M.speed=seq[(i+1)%seq.length];
+    this.renderPlayControls();
+  },
+  skipGame(){ M.instant=true; },
+  decRate(o){
+    let r=o.rate(P);
+    r-=(M.opp.skill-55)/280;      // stronger opponent => lower success
+    if(P.morale<45) r-=0.05;
+    return clamp(r,0.15,0.92);
+  },
+  triggerDecision(){
+    if(this.game.over) return;
+    const pool=MATCH_DECISIONS.filter(d=>!d.cond||d.cond());
+    const d=pick(pool.length?pool:MATCH_DECISIONS);
+    M.curDecision=d;
+    const g=this.game;
+    const rows=d.options.map((o,i)=>{
+      const r=this.decRate(o); const pc=Math.round(r*100);
+      const cls=r>=0.6?'neon':r>=0.4?'sky':'';
+      return `<div class="opt" onclick="Match.resolveDecision(${i})">
+        <div class="ot">${o.t} <span class="pill ${cls}" style="float:right">成功率 ${pc}%</span></div>
+        <div class="oe" style="color:var(--sub);display:block;margin-top:6px">${o.hint||''}</div>
+      </div>`;
+    }).join("");
+    Modal.open(`
+      <div class="center"><div class="emoji">🎯</div></div>
+      <h2 style="text-align:center;margin-top:4px">臨場抉擇 · ${d.title}</h2>
+      <div class="desc">目前比分 <b class="mono">${g.cur[0]} : ${g.cur[1]}</b>（vs ${M.opp.name}）· ${d.desc}</div>
+      ${rows}`, true);
+  },
+  resolveDecision(i){
+    const d=M.curDecision, o=d.options[i];
+    const r=this.decRate(o);
+    Modal.close();
+    const ok=Math.random()<r;
+    const out=ok?o.onSuccess:o.onFail;
+    // apply
+    const g=this.game;
+    if(out){
+      if(out.momentum){ M.momentum=out.momentum; M.momentumRallies=out.momRallies||4; }
+      if(out.pointYou){ g.cur[0]+=out.pointYou; g.serving="you"; }
+      if(out.pointOpp){ g.cur[1]+=out.pointOpp; g.serving="opp"; }
+      if(out.stamYou) M.matchStamina.you=clamp(M.matchStamina.you+out.stamYou);
+      if(out.stamOpp) M.matchStamina.opp=clamp(M.matchStamina.opp+out.stamOpp);
+      if(out.wrist) P.injuryWrist=clamp(P.injuryWrist+out.wrist);
+      if(out.morale) P.morale=clamp(P.morale+out.morale);
+    }
+    this.addLine(`🎯 <b>${o.t}</b> —— ${ok?'<span style="color:var(--neon)">成功！</span>':'<span style="color:var(--red2)">失敗…</span>'} ${out&&out.log?out.log:''}`,"pt");
+    Feed.toast((ok?'✅ ':'❌ ')+((out&&out.log)||''), ok?'good':'bad');
+    this.resumeAfterDecision();
+  },
+  makeOpp(){
+    const L=M.level; const prog=M.round/(L.rounds); // later rounds tougher
+    const base=L.oppLo+(L.oppHi-L.oppLo)*prog;
+    const skill=clamp(base+rnd(-4,5));
+    const style=pick(["attack","control","defense"]);
+    const isFinal=M.round===L.rounds-1;
+    const name=pick(OPP_FIRST)+(Math.random()<0.15?" "+pick(OPP_LAST):"");
+    return { name:name.trim(), skill, style, stamina:100,
+      // per-attr derived from skill with style flavor
+      attrs:this.oppAttrs(skill,style), isFinal };
+  },
+  oppAttrs(s,style){
+    const a={smash:s,net:s,placement:s,defense:s,stamina:s,agility:s,clutch:s,composure:s,explosive:s,durability:s,touch:s};
+    const j=()=>rnd(-6,6);
+    for(const k in a) a[k]=clamp(a[k]+j());
+    if(style==="attack"){a.smash+=8;a.explosive+=6;a.defense-=4;}
+    if(style==="control"){a.placement+=8;a.stamina+=6;a.net+=4;}
+    if(style==="defense"){a.defense+=9;a.agility+=6;a.smash-=4;}
+    for(const k in a) a[k]=clamp(a[k]);
+    return a;
+  },
+  nextRound(){
+    const L=M.level; M.round++;
+    if(M.round>L.rounds){ this.championship(); return; }
+    M.opp=this.makeOpp();
+    M.challenges={you:3,opp:3};
+    this.game={g1:[0,0],cur:[0,0],games:{you:0,opp:0},gameNo:1,serving:Math.random()<0.5?"you":"opp",over:false,history:[]};
+    M.gamesWon={you:0,opp:0};
+    UI.show("s-match");
+    this.renderRoundIntro();
+  },
+  roundLabel(){
+    const L=M.level,r=M.round,total=L.rounds;
+    const fromEnd=total-r;
+    if(fromEnd===0) return "決賽";
+    if(fromEnd===1) return "準決賽";
+    if(fromEnd===2) return "半準決賽 (8強)";
+    if(fromEnd===3) return "16 強";
+    return `第 ${r} 輪`;
+  },
+  renderRoundIntro(){
+    const o=M.opp;
+    $("match-title").innerHTML=`<div class="pill gold">${M.level.name}</div>
+      <h2 style="margin-top:8px">${this.roundLabel()}</h2>`;
+    const sty=STYLES[o.style];
+    const edge = BEATS[P.style]===o.style?`<span style="color:var(--green)">你的打法克制對手 ▲</span>`
+      : BEATS[o.style]===P.style?`<span style="color:var(--red2)">對手打法克制你 ▼</span>`
+      : `<span class="sub">打法互不克制</span>`;
+    const partnerLine = (P.discipline==="doubles"&&P.partner)
+      ? `<div class="pill sky" style="margin-bottom:10px">🤝 與 ${P.partner.name} 出戰 · 默契 ${round(P.partner.chem)} · 實力 ${round(P.partner.skill||55)}</div>` : "";
+    $("board").innerHTML=`<div style="padding:18px;text-align:center">
+      ${partnerLine}
+      <div class="sub small">對手</div>
+      <div style="font-size:22px;font-weight:900;margin:6px 0">${o.name}</div>
+      <div class="pill" style="color:${sty.color};border-color:${sty.color}44">${sty.icon} ${sty.name} · 實力 ${round(o.skill)}</div>
+      <div style="margin-top:14px;font-size:13px">${edge}</div></div>`;
+    $("rally").innerHTML=`<div class="line sys">裁判就位，球員熱身中……</div>
+      <div class="line sys">${M.level.major?'大賽壓力籠罩全場。':'球館燈光亮起。'}你目前體能 ${round(P.stamina)}%。</div>`;
+    $("match-foot").innerHTML=`<button class="btn primary" onclick="Match.playGame()">▶ 開始比賽</button>`;
+  },
+  playGame(){
+    // set match-level stamina snapshot: matchStamina degrades within match, drawn from P.stamina
+    M.matchStamina={you:clamp(P.stamina), opp:100};
+    M.instant=false; M.decisionsLeft=irnd(1,2); M.rallyCount=0;
+    this.game.over=false;
+    this.renderPlayControls();
+    this.rallyLoop();
+  },
+  addLine(html,cls=""){
+    const r=$("rally"); const d=document.createElement("div");
+    d.className="line "+cls; d.innerHTML=html; r.appendChild(d); r.scrollTop=r.scrollHeight;
+  },
+  styleMod(pStyle,oStyle){
+    if(BEATS[pStyle]===oStyle) return 0.12;   // you counter opp
+    if(BEATS[oStyle]===pStyle) return -0.12;  // opp counters you
+    return 0;
+  },
+  /* simulate ONE rally, return winner 'you'|'opp' + push commentary */
+  simRally(){
+    const g=this.game, o=M.opp;
+    const youServe=g.serving==="you";
+    // rally length influenced by both stamina/defense/control
+    const grind=(P.attrs.defense+P.attrs.stamina+o.attrs.defense+o.attrs.stamina)/4;
+    let len=irnd(2,Math.round(4+grind/12));
+    len=clamp(len,1,26);
+    // stamina cost per rally
+    const cost=len*rnd(.22,.42);
+    M.matchStamina.you=clamp(M.matchStamina.you-cost*(1.2-P.attrs.stamina/160));
+    M.matchStamina.opp=clamp(M.matchStamina.opp-cost*(1.2-o.attrs.stamina/160));
+
+    // technical advantage
+    const pTech=(P.attrs.smash+P.attrs.net+P.attrs.placement+P.attrs.defense)/4;
+    const oTech=(o.attrs.smash+o.attrs.net+o.attrs.placement+o.attrs.defense)/4;
+    let techAdv=(pTech-oTech)/100; // -1..1
+    techAdv+=this.styleMod(P.style,o.style);
+    // long rallies favor better stamina & control player
+    if(len>=8){ techAdv+=((P.attrs.stamina-o.attrs.stamina)/100)*0.5 + ((P.attrs.placement-o.attrs.placement)/100)*0.3; }
+
+    const stamPct=(M.matchStamina.you-M.matchStamina.opp)/100; // -1..1
+    // clutch factor if key point
+    const yScore=g.cur[0],oScore=g.cur[1];
+    const key=(yScore>=19&&oScore>=19)||(Math.max(yScore,oScore)>=20&&Math.abs(yScore-oScore)<=1&&Math.max(yScore,oScore)>=20);
+    let mindAdv=((P.attrs.clutch+P.attrs.composure)/2-(o.attrs.clutch+o.attrs.composure)/2)/100;
+    const wMind=key?0.4:0.2;
+    // wrist injury / active injury saps performance
+    let injPen=(P.injuryWrist>50?0.05:0)+(P.injured?P.injured.pen:0);
+
+    let pWin=0.5 + techAdv*0.4 + stamPct*0.3 + mindAdv*wMind - injPen + rnd(-0.09,0.09);
+    // morale influence
+    pWin += (P.morale-60)/600;
+    // doubles: partner chemistry & ability swing the match
+    if(P.discipline==="doubles" && P.partner){
+      pWin += ((P.partner.chem-50)/100)*0.18 + (((P.partner.skill||55)-58)/100)*0.15;
+    }
+    // momentum from a successful in-match decision (decays over a few rallies)
+    if(M.momentumRallies>0){ pWin += (M.momentum||0); M.momentumRallies--; if(M.momentumRallies<=0) M.momentum=0; }
+    pWin=clamp(pWin,0.06,0.94);
+
+    const youWin=Math.random()<pWin;
+    // commentary
+    this.rallyCommentary(len,youWin,youServe,key);
+    // serve rules: rally point -> server may change
+    return {youWin,key,len};
+  },
+  rallyCommentary(len,youWin,youServe,key){
+    const o=M.opp;
+    if(M.instant){
+      const w=youWin?`<span class="p">${P.name}</span>`:`<span class="o">${o.name}</span>`;
+      this.addLine((key?'⚡ ':'')+w+' 得分。','pt');
+      return;
+    }
+    const YOU=`<span class="p">${P.name}</span>`, OPP=`<span class="o">${o.name}</span>`;
+    const serves=youServe?YOU:OPP;
+    const shots=[];
+    shots.push(`${serves} 發${Math.random()<.5?'高遠球':'網前小球'}開球。`);
+    const midShots=[
+      `${YOU} 一記後場高遠壓底線`, `${OPP} 平抽快擋回中場`,
+      `${YOU} 網前搓球貼網而過`, `${OPP} 挑後場化解壓力`,
+      `${YOU} 突擊點殺直線`, `${OPP} 魚躍救球撲回前場`,
+      `${YOU} 拉開對角調動`, `${OPP} 放網勾對角`,
+      `${YOU} 平高球壓反手`, `${OPP} 頭頂區劈吊對角`,
+    ];
+    const n=clamp(Math.round(len/2),0,4);
+    for(let i=0;i<n;i++) shots.push(pick(midShots)+"。");
+    // finisher
+    const winner=youWin?YOU:OPP;
+    const fins=youWin?[
+      `${YOU} 起跳重殺對角，勢大力沉，得分！`,
+      `${YOU} 假動作放網騙起對手，撲球得分！`,
+      `${YOU} 一拍劈殺壓線，對手措手不及！`,
+      `${OPP} 回球下網，${YOU} 拿下這一分！`,
+      `${YOU} 多拍磨到對手回球出界！`,
+    ]:[
+      `${OPP} 一記重殺直線穿越，${P.name} 撲救不及。`,
+      `${YOU} 殺球出界，${OPP} 得分。`,
+      `${OPP} 網前勾對角，${YOU} 沒能追到。`,
+      `${YOU} 高球出底線，${OPP} 抓住機會。`,
+      `${OPP} 防守反擊一拍制勝。`,
+    ];
+    shots.forEach((s,i)=>this.addLine((len>=10&&i===0?`<span class="dim">[${len}拍長回合] </span>`:"")+s,"sys"));
+    if(key) this.addLine("⚡ 關鍵分！全場屏息……","sys");
+    this.addLine(pick(fins),"pt "+(youWin?"":""));
+  },
+  rallyLoop(){
+    const g=this.game;
+    if(g.over) return;
+    M.rallyCount=(M.rallyCount||0)+1;
+    const res=this.simRally();
+    // scoring
+    if(res.youWin){ g.cur[0]++; g.serving="you"; }
+    else { g.cur[1]++; g.serving="opp"; }
+    this.renderBoard(res.key);
+    // game end?
+    const [a,b]=g.cur;
+    const gameDone=(a>=21&&a-b>=2)||(b>=21&&b-a>=2)||a===30||b===30;
+    // in-match tactical decision (~1-2 per match)
+    if(!gameDone && !M.instant && (M.decisionsLeft||0)>0 && M.rallyCount>=4 &&
+       Math.max(a,b)<19 && Math.random()<0.05){
+      M.decisionsLeft--;
+      setTimeout(()=>this.triggerDecision(),Math.max(120,700/(M.speed||1)));
+      return;
+    }
+    let delay=(res.key?900:420)/(M.speed||1);
+    if(M.instant) delay=0;
+    if(gameDone){ setTimeout(()=>this.endGame(), M.instant?0:Math.max(120,700/(M.speed||1))); }
+    else setTimeout(()=>this.rallyLoop(),delay);
+  },
+  resumeAfterDecision(){
+    const g=this.game;
+    const [a,b]=g.cur;
+    const gameDone=(a>=21&&a-b>=2)||(b>=21&&b-a>=2)||a===30||b===30;
+    this.renderBoard(false);
+    if(gameDone) setTimeout(()=>this.endGame(),500);
+    else setTimeout(()=>this.rallyLoop(),Math.max(150,500/(M.speed||1)));
+  },
+  renderBoard(key){
+    const g=this.game,o=M.opp;
+    const mp = (Math.max(g.cur[0],g.cur[1])>=20)&&Math.abs(g.cur[0]-g.cur[1])>=0;
+    const isMP=(g.cur[0]>=20&&g.cur[0]-g.cur[1]>=1)||(g.cur[1]>=20&&g.cur[1]-g.cur[0]>=1);
+    const bd=$("board"); bd.className="board"+(isMP?" mp":"");
+    const gw=(who)=>{let s="";for(let i=0;i<Math.max(1,g.gameNo);i++){}return "";};
+    bd.innerHTML=`
+      <div class="rowb">
+        <div class="pname"><span class="serve ${g.serving==='you'?'on':''}"></span>${P.name}</div>
+        <div class="games"><span class="g ${M.gamesWon.you>0?'win':''}">${M.gamesWon.you}</span></div>
+        <div class="pt">${g.cur[0]}</div>
+      </div>
+      <div class="rowb">
+        <div class="pname"><span class="serve ${g.serving==='opp'?'on':''}"></span>${o.name}</div>
+        <div class="games"><span class="g ${M.gamesWon.opp>0?'win':''}">${M.gamesWon.opp}</span></div>
+        <div class="pt">${g.cur[1]}</div>
+      </div>`;
+    if(navigator.vibrate&&key) navigator.vibrate(30);
+  },
+  endGame(){
+    const g=this.game;
+    M.instant=false; M.momentum=0; M.momentumRallies=0;
+    const youWon=g.cur[0]>g.cur[1];
+    if(youWon) M.gamesWon.you++; else M.gamesWon.opp++;
+    this.addLine(`—— 第 ${g.gameNo} 局結束：${g.cur[0]} : ${g.cur[1]} ——`,"sys");
+    // carry fatigue back to player between games handled via matchStamina
+    if(M.gamesWon.you===2||M.gamesWon.opp===2){ setTimeout(()=>this.endMatch(M.gamesWon.you===2),600); return; }
+    // next game
+    g.gameNo++; g.cur=[0,0]; g.serving=Math.random()<0.5?"you":"opp";
+    M.challenges={you:3,opp:3};
+    // recover a touch between games
+    M.matchStamina.you=clamp(M.matchStamina.you+6);
+    M.matchStamina.opp=clamp(M.matchStamina.opp+6);
+    this.renderBoard(false);
+    $("match-foot").innerHTML=`<button class="btn primary" onclick="Match.contGame()">▶ 第 ${g.gameNo} 局</button>`;
+  },
+  contGame(){
+    M.instant=false;
+    this.renderPlayControls();
+    this.rallyLoop();
+  },
+  endMatch(youWon){
+    // sync player stamina to what remains
+    P.stamina=clamp(Math.round(M.matchStamina.you));
+    const o=M.opp;
+    if(youWon){
+      P.careerWins++; P.seasonW=(P.seasonW||0)+1; P.morale=clamp(P.morale+6);
+      this.addLine(`🎉 ${P.name} 擊敗 ${o.name}，晉級！`,"pt");
+      // injury risk from hard match
+      if(Math.random()<0.06+(P.attrs.durability<45?.06:0)){ P.injuryKnee=clamp(P.injuryKnee+irnd(8,18)); }
+      // key-point achievement
+      $("match-foot").innerHTML=`<button class="btn primary" onclick="Match.afterWin()">繼續 ▶</button>`;
+    } else {
+      P.careerLosses++; P.seasonL=(P.seasonL||0)+1; P.morale=clamp(P.morale-10);
+      // ranking points for reaching this round
+      const pts=Math.round(M.level.pts*this.roundShare(M.round-0.5));
+      const money=Math.round(M.level.money*this.roundShare(M.round-0.5)*0.6);
+      P.points+=pts; P.money+=money;
+      this.addLine(`😞 ${P.name} 不敵 ${o.name}，止步${this.roundLabel()}。（+${pts}pts）`,"pt");
+      $("match-foot").innerHTML=`<button class="btn" onclick="Match.finishTournament(false)">返回賽季 ▶</button>`;
+    }
+    Hub.renderHeader&&Hub.renderHeader();
+  },
+  roundShare(r){ // fraction of points for reaching round r of total
+    const t=M.level.rounds;
+    const frac=[0.06,0.10,0.18,0.30,0.50,0.70,1.0];
+    const idx=clamp(Math.round(r),1,t)-1;
+    // scale so final(win)=1
+    return frac[Math.min(idx, frac.length-1)]* (0.6);
+  },
+  afterWin(){
+    if(M.round>=M.level.rounds){ this.championship(); return; }
+    // chance of a mid-tournament event
+    if(Math.random()<0.22){ Events.fire("match_event", ()=>Match.nextRound()); }
+    else this.nextRound();
+  },
+  championship(){
+    const L=M.level;
+    P.titles.push({level:L.id,name:L.name,year:P.year});
+    P.points+=L.pts; P.money+=L.money; P.attrs.fame=clamp(P.attrs.fame+L.fame);
+    P.morale=clamp(P.morale+14);
+    if(L.major){ P.majorTitles[L.id]=(P.majorTitles[L.id]||0)+1; }
+    this.addLine(`🏆🏆🏆 冠軍！${P.name} 奪得 ${L.name} 冠軍！(+${L.pts.toLocaleString()}pts · $${L.money.toLocaleString()})`,"pt");
+    Feed.toast(`🏆 ${L.name} 冠軍！`,"gold",3600);
+    $("match-title").innerHTML=`<div class="big goldtext">🏆 ${L.name}</div><div class="sub">CHAMPION</div>`;
+    $("match-foot").innerHTML=`<button class="btn primary" onclick="Match.finishTournament(true)">舉起獎盃 ▶</button>`;
+    Achievements.check();
+    Ranking.recompute();
+    Hub.renderHeader();
+  },
+  finishTournament(won){
+    Ranking.recompute();
+    Achievements.check();
+    P.restsLeft=5;   // fresh 5 rests before the next match
+    P.stamina=clamp(Math.max(P.stamina,50));  // 賽後至少恢復到 50% 體力
+    if(P.discipline==="doubles" && P.partner){  // playing together builds chemistry
+      P.partner.matches=(P.partner.matches||0)+1;
+      P.partner.chem=clamp(P.partner.chem+irnd(2,4));
+    }
+    if(P.stamina>50) Feed.toast("🔋 賽後恢復，體力回到 "+round(P.stamina)+"%","good");
+    else Feed.toast("🔋 賽後體力恢復至 50%","good");
+    Hub.enter();
+    // possible real injury from the physical toll of competition
+    if(Injury.maybeTrigger("match")) return;
+    // post-tournament random event
+    if(Math.random()<0.3) Events.fire(won?"post_win":"post_generic");
+  }
+};
+
+/* =========================================================================
+   RANKING
+   ========================================================================= */
+const Ranking={
+  // realistic BWF-style curve: high ranks need a full season of many events' points
+  ANCHORS:[[0,9999],[300,320],[800,260],[1600,215],[3000,170],[5500,130],[9000,100],
+    [14000,76],[20000,58],[28000,45],[38000,35],[50000,26],[66000,18],[86000,11],
+    [110000,6],[145000,3],[185000,1]],
+  recompute(){
+    const pts=P.points, A=this.ANCHORS;
+    let rank;
+    if(pts<=0) rank=9999;
+    else if(pts>=A[A.length-1][0]) rank=1;
+    else{
+      rank=9999;
+      for(let i=0;i<A.length-1;i++){
+        const [p0,r0]=A[i], [p1,r1]=A[i+1];
+        if(pts>=p0 && pts<p1){ rank=Math.round(r0+(r1-r0)*(pts-p0)/(p1-p0)); break; }
+      }
+    }
+    rank=clamp(Math.round(rank),1,9999);
+    P.rank=rank;
+    if(rank<P.bestRank) P.bestRank=rank;
+    if(rank===1) P.everNo1=true;
+  }
+};
+
+/* =========================================================================
+   SEASON / year-end
+   ========================================================================= */
+const Season={
+  endYear(){
+    if((P.restsLeft??5)<=0){ Feed.toast("休整次數已用盡，先出賽再結束賽季","bad"); return; }
+    // record the season just completed (before aging)
+    P.history=P.history||[];
+    P.history.push({ year:P.year, age:P.age, rank:P.rank, points:Math.round(P.points),
+      w:P.seasonW||0, l:P.seasonL||0, titles:P.titles.filter(t=>t.year===P.year).length });
+    P.seasonW=0; P.seasonL=0;
+    // aging & decline
+    const b=[];
+    P.seasonNo++; P.age++; P.year++;
+    P.phase=Hub.phaseName?"":"";
+    // points decay (rolling 52-week nature)
+    P.points=Math.round(P.points*0.86);
+    Ranking.recompute();
+    // physical growth vs decline
+    const growKeys=["explosive","stamina","agility","smash","net","placement","defense"];
+    if(P.age<=18){ // youth growth bonus
+      growKeys.forEach(k=>{ if(P.attrs[k]<P.caps[k]&&Math.random()<0.5) P.attrs[k]=clamp(P.attrs[k]+irnd(1,3)); });
+    }
+    if(P.age>=29){ // decline
+      const decl=["explosive","stamina","agility"];
+      decl.forEach(k=>{ P.attrs[k]=clamp(P.attrs[k]-irnd(2,5)); });
+      // but tactics/composure/touch can rise
+      ["tactics","composure","placement"].forEach(k=>{ if(P.attrs[k]<P.caps[k]&&Math.random()<0.5) P.attrs[k]=clamp(P.attrs[k]+irnd(1,2)); });
+      b.push("身體屬性隨年齡下滑，經驗與控球提升。");
+    }
+    // level progression by rank
+    this.updateLevel();
+    // recover between seasons
+    P.stamina=clamp(P.stamina+40);
+    P.injuryWrist=clamp(P.injuryWrist-10); P.injuryKnee=clamp(P.injuryKnee-10);
+    P.seasonPlayed=false; P.restsLeft=5;
+    Injury.progress(2);   // a whole season passes — rehab advances
+    Hub.renderHeader(); UI.hubTab("season");
+    Achievements.check();
+    Game.save();
+    // hard cap: 40 歲為職業生涯絕對極限，強制退役
+    if(P.age>=40){
+      Feed.toast("🎖️ 已達職業生涯極限（40 歲），光榮退役","gold",3600);
+      CareerEnd.show(); return;
+    }
+    // soft retirement prompt (可選擇再戰一季)
+    if(P.age>=30 && (P.age>=36 || (P.age>=32&&Math.random()<0.35))){
+      Events.fire("retire_prompt"); return;
+    }
+    // milestone or seasonal event
+    Hub.checkMilestones();
+    if(Math.random()<0.6) Events.fire("season_event");
+    Feed.toast(`📅 進入 ${P.year} 賽季，${P.age} 歲 · 世界排名 #${P.rank}`,"good",3000);
+  },
+  updateLevel(){
+    if(P.rank<=32) P.level="nat1";
+    else if(P.rank<=120) P.level="nat2";
+    else if(P.rank<=300) P.level="prov";
+    else if(P.age>=16) P.level="prov";
+  }
+};
+
+/* =========================================================================
+   EVENT SYSTEM  (JSON-style library)
+   ========================================================================= */
+const EVENTS={
+  milestone_growth:{
+    title:"12 歲 · 身體二次發育",emoji:"📏",stage:"youth",
+    desc:"這一年你突然抽高了 10 公分。殺球角度與覆蓋範圍大增，但重心變高、協調需要重練。",
+    options:[
+      {t:"順勢改造成進攻型身材",eff:{smash:12,explosive:6,agility:-9},log:"殺球更具威脅，但腳下需要重新適應。"},
+      {t:"沉住氣，先把步法協調補回來",eff:{agility:8,defense:5,smash:-2},log:"你花時間穩固下盤，靈活度回穩。"},
+    ]},
+  milestone_discipline:{
+    title:"13 歲 · 單雙打分流",emoji:"🔀",stage:"youth",
+    desc:"教練評估你的特點，讓你在單打與雙打之間做出選擇。雙打將開啟『搭檔默契系統』。",
+    options:[
+      {t:"專攻單打（單兵作戰、極度依賴體能）",eff:{stamina:6,will:5,tactics:4},set:{discipline:"singles"},log:"你走上單打之路，一個人扛下整片球場。"},
+      {t:"轉戰雙打（前場封網型）",eff:{net:10,agility:6,smash:-3},set:{discipline:"doubles",partnerNew:true,pos:"front"},log:"你成為網前封網手，與搭檔並肩作戰。"},
+      {t:"轉戰雙打（後場重殺型）",eff:{smash:12,explosive:5,net:-3},set:{discipline:"doubles",partnerNew:true,pos:"back"},log:"你坐鎮後場，用重殺為搭檔開路。"},
+    ]},
+  milestone_route:{
+    title:"14–15 歲 · 人生路線抉擇",emoji:"🛣️",stage:"youth",
+    desc:"國青隊選拔在即，你必須在純職業與兼顧學業之間抉擇。",
+    options:[
+      {t:"簽約省隊 / 國家二隊，走純職業",eff:{smash:5,stamina:5,placement:5,composure:-3},set:{level:"nat2"},log:"退路已斷，你把一切押在球場上。"},
+      {t:"走高校特長生，兼顧學業",eff:{tactics:8,composure:6,explosive:-3},log:"你為未來留了條後路，成長速度略慢但更穩。"},
+    ]},
+  milestone_sponsor:{
+    title:"16 歲 · 器材與贊助商",emoji:"🤝",stage:"pro",
+    desc:"品牌開始注意到你。是要拿高簽約金但被迫使用硬彈拍（傷手腕），還是低簽約金換客製化器材？",
+    options:[
+      {t:"YONEX 高簽約金 · 硬彈拍 31 磅",eff:{smash:7,net:4,durability:-5},set:{brand:"YONEX 100ZZ",tension:31},money:60000,hidden:{wrist:14},log:"殺球初速飆升，但手腕開始隱隱作痛。"},
+      {t:"VICTOR 客製化 · 28 磅",eff:{placement:6,tension:6,durability:2},set:{brand:"VICTOR TK-F",tension:28},money:22000,log:"手感貼合，控球線路更深遠。"},
+      {t:"LI-NING 均衡合約 · 30 磅",eff:{smash:4,placement:3},set:{brand:"LI-NING Axforce",tension:30},money:38000,log:"你選了一份中庸而穩健的合約。"},
+    ]},
+  train_injury:{
+    title:"訓練警訊 · 手腕發炎",emoji:"🩹",stage:"any",
+    desc:"高強度加練後，你的手腕生長板 / 關節出現發炎跡象。是要歇息，還是帶傷硬撐？",
+    options:[
+      {t:"歇業三週，徹底養好",eff:{},hidden:{wristHeal:25},stamina:15,log:"成長停滯了三週，但傷勢痊癒。"},
+      {t:"打封閉、帶傷續練",eff:{will:6,durability:-6},hidden:{wrist:18},log:"你咬牙撐住，卻埋下永久傷病隱患。"},
+    ]},
+  tension_cost:{
+    title:"磅數的代價",emoji:"🎾",stage:"any",
+    desc:"你看見國家隊球星都用 30 磅以上、線床硬如木板的球拍。你也想拉高磅數，但腕力未必跟得上。",
+    options:[
+      {t:"堅持高磅數，追求球速",eff:{smash:5,net:3,durability:-8},hidden:{wrist:15},set:{tension:32},log:"殺球更快，但每週手腕都痛。"},
+      {t:"聽教練建議降回 26 磅",eff:{placement:4,tension:4,durability:2},set:{tension:26},log:"你學會用球拍彈性打球，線路更深遠。"},
+    ]},
+  match_event:{
+    title:"局間調整",emoji:"🧠",stage:"any",
+    desc:"局間休息，教練指出對手的接殺站位偏後。你要如何調整？",
+    options:[
+      {t:"改打網前小球與假動作",eff:{net:3,touch:2},heal:{stamina:4},log:"你把球做得更細，逼對手上網失位。"},
+      {t:"加大殺球力度硬碰硬",eff:{smash:3},hidden:{wrist:6},log:"你選擇正面對決，火力全開。"},
+      {t:"穩住節奏、拉長回合",eff:{stamina:2,tactics:3},log:"你放慢節奏，用耐心磨對手。"},
+    ]},
+  post_win:{
+    title:"勝利後的邀約",emoji:"📸",stage:"any",
+    desc:"奪冠後媒體與商業活動蜂擁而至，但賽季還沒結束。",
+    options:[
+      {t:"參加商業活動衝知名度",eff:{fame:6,composure:2},money:15000,stamina:-8,log:"曝光度大增，但體能被消耗。"},
+      {t:"婉拒，專心備戰下一站",eff:{tactics:3,will:2},heal:{stamina:6},log:"你選擇低調，把精力留在球場。"},
+    ]},
+  post_generic:{
+    title:"賽後恢復",emoji:"🛌",stage:"any",
+    desc:"一場硬仗後身體有些吃緊，你如何安排恢復？",
+    options:[
+      {t:"進行完整理療與冰浴",eff:{},heal:{stamina:10},hidden:{wristHeal:8,kneeHeal:8},log:"身體得到充分恢復。"},
+      {t:"簡單放鬆，加練發球",eff:{placement:3},stamina:-4,log:"你順手磨了發球，但恢復不夠徹底。"},
+    ]},
+  season_event:{ pool:true }, // resolved dynamically
+  retire_prompt:{
+    title:"生涯的十字路口",emoji:"🎖️",stage:"end",
+    desc:"年齡漸長，身體不再是巔峰。你可以選擇功成身退，或再戰一季追逐未竟的夢想。",
+    options:[
+      {t:"就此退役，光榮謝幕",set:{retireNow:true},log:"你放下球拍，向球場鞠躬。"},
+      {t:"再戰一季（身體風險升高）",eff:{will:4,durability:-4},log:"你決定再拚一年。"},
+    ]},
+};
+// dynamic seasonal event pool
+const SEASON_POOL=[
+  {title:"客場強風球館",emoji:"🌪️",desc:"你被抽到在東南亞的強風球館比賽，高球飄忽難以掌控。",
+    options:[
+      {t:"苦練平抽擋適應風向",eff:{defense:4,placement:3},log:"你逐漸掌握了風洞裡的節奏。"},
+      {t:"改用低平快節奏",eff:{agility:3,smash:2},stamina:-4,log:"你用速度壓過風的影響。"},
+    ]},
+  {title:"爭議判罰",emoji:"⚖️",desc:"一次關鍵司線判罰引發爭議，你的情緒受到影響。",
+    options:[
+      {t:"冷靜提出鷹眼挑戰",eff:{clutch:4,composure:3},log:"你壓下情緒、專注下一球。"},
+      {t:"與裁判理論",eff:{composure:-4,will:2},log:"你發洩了不滿，卻也失了專注。"},
+    ]},
+  {title:"搭檔默契危機",emoji:"🤼",desc:"（雙打）你與搭檔在連續首輪出局後產生分歧，教練團考慮拆夥。",
+    onlyDoubles:true,
+    options:[
+      {t:"溝通磨合，爭取續留",eff:{tactics:4},chem:12,log:"你們坦誠溝通，默契回升。"},
+      {t:"接受換搭檔",eff:{net:2},newPartner:true,log:"你迎來新的搭檔，一切重新開始。"},
+    ]},
+  {title:"默契特訓",emoji:"🤝",desc:"（雙打）你與搭檔進行了一段封閉的默契特訓，攻守輪轉越練越有火花。",
+    onlyDoubles:true,
+    options:[
+      {t:"加練多球與前後輪轉",chem:12,log:"你們的走位與補位默契大幅提升。"},
+      {t:"兼顧個人技術",eff:{net:2},chem:4,log:"顧好自己之餘，默契也小幅增長。"},
+    ]},
+  {title:"搭檔生涯抉擇",emoji:"🧳",desc:"（雙打）你的搭檔因傷病與家庭因素考慮退役，這對組合可能走到盡頭。",
+    onlyDoubles:true,
+    options:[
+      {t:"尊重決定、尋找新搭檔",newPartner:true,log:"你揮別老戰友，展開新的合作。"},
+      {t:"說服他再拚一季",eff:{will:3},chem:-8,log:"他勉強留下，但狀態與默契都受影響。"},
+    ]},
+  {title:"強力挖角",emoji:"⭐",desc:"（雙打）一位世界級好手向你招手，想與你組隊衝擊大賽，但你得先拆掉現在的組合。",
+    onlyDoubles:true,
+    options:[
+      {t:"接受，追求更高成就",betterPartner:true,log:"你與更強的搭檔組隊，磨合重新開始。"},
+      {t:"重情義、留在原組合",eff:{composure:3},chem:8,log:"你選擇忠誠，與老搭檔默契更深。"},
+    ]},
+  {title:"贊助商加碼",emoji:"💰",desc:"你的成績吸引更多品牌關注，一份新合約擺在眼前。",
+    options:[
+      {t:"簽下更大合約",eff:{fame:5},money:40000,log:"荷包滿了，期待也更高了。"},
+      {t:"維持現狀專注訓練",eff:{tactics:3,will:2},log:"你選擇不被商業分心。"},
+    ]},
+  {title:"傷病復發",emoji:"🤕",desc:"舊傷在密集賽程中隱隱作痛，是否要策略性退賽？",
+    options:[
+      {t:"策略性退賽保身體",heal:{stamina:14},hidden:{wristHeal:16,kneeHeal:16},log:"你保住了健康，排名略降。",pointsMul:0.94},
+      {t:"帶傷全勤刷排名",eff:{will:5},hidden:{wrist:12,knee:12},points:1200,log:"你拚下更多積分，但身體付出代價。"},
+    ]},
+  {title:"年輕小將的挑戰",emoji:"🔥",desc:"一位天才新秀公開表示要擊敗你，媒體大肆炒作。",
+    options:[
+      {t:"用實力回應，加倍苦練",eff:{smash:3,stamina:3,will:3},stamina:-6,log:"你用行動證明老將的價值。"},
+      {t:"淡然處之",eff:{composure:4},log:"你不被外界噪音干擾。"},
+    ]},
+];
+
+const Events={
+  pending:null, cb:null,
+  fire(id,cb){
+    let ev=EVENTS[id];
+    if(id==="season_event"){ ev=this.buildSeasonEvent(); }
+    if(!ev){ cb&&cb(); return; }
+    this.pending=ev; this.cb=cb||null;
+    const html=`
+      <div class="center"><div class="emoji">${ev.emoji||"🎲"}</div></div>
+      <h2 style="text-align:center;margin-top:6px">${ev.title}</h2>
+      <div class="desc">${ev.desc}</div>
+      ${ev.options.map((o,i)=>`
+        <div class="opt" onclick="Events.choose(${i})">
+          <div class="ot">${o.t}</div>
+          <div class="oe">${this.effChips(o)}</div>
+        </div>`).join("")}`;
+    Modal.open(html,true);
+  },
+  buildSeasonEvent(){
+    let pool=SEASON_POOL.filter(e=>!e.onlyDoubles||P.discipline==="doubles");
+    return pick(pool);
+  },
+  effChips(o){
+    const chips=[];
+    if(o.eff) for(const[k,v]of Object.entries(o.eff)) chips.push(`<span class="chip ${v>0?'up':'dn'}">${LABEL[k]||k}${v>0?'+':''}${v}</span>`);
+    if(o.money) chips.push(`<span class="chip up">$${(o.money/1000)}k</span>`);
+    if(o.points) chips.push(`<span class="chip up">+${o.points}pts</span>`);
+    if(o.stamina) chips.push(`<span class="chip ${o.stamina>0?'up':'dn'}">體能${o.stamina>0?'+':''}${o.stamina}</span>`);
+    if(o.heal&&o.heal.stamina) chips.push(`<span class="chip up">體能+${o.heal.stamina}</span>`);
+    if(o.chem) chips.push(`<span class="chip ${o.chem>0?'up':'dn'}">默契${o.chem>0?'+':''}${o.chem}</span>`);
+    if(o.newPartner) chips.push(`<span class="chip risk">更換搭檔 · 默契重置</span>`);
+    if(o.betterPartner) chips.push(`<span class="chip up">更強搭檔</span><span class="chip risk">默契重置</span>`);
+    if(o.hidden){ if(o.hidden.wrist) chips.push(`<span class="chip risk">手腕風險+${o.hidden.wrist}</span>`);
+      if(o.hidden.knee) chips.push(`<span class="chip risk">膝蓋風險+${o.hidden.knee}</span>`); }
+    if(o.set&&o.set.retireNow) chips.push(`<span class="chip">退役</span>`);
+    return chips.join("");
+  },
+  choose(i){
+    const o=this.pending.options[i]; const cb=this.cb;
+    Modal.close(); this.pending=null; this.cb=null;
+    // apply effects
+    if(o.eff) for(const[k,v]of Object.entries(o.eff)){ if(k in P.attrs) P.attrs[k]=clamp(P.attrs[k]+v); }
+    if(o.money) P.money+=o.money;
+    if(o.points) P.points+=o.points;
+    if(o.pointsMul) P.points=Math.round(P.points*o.pointsMul);
+    if(o.stamina) P.stamina=clamp(P.stamina+o.stamina);
+    if(o.heal&&o.heal.stamina) P.stamina=clamp(P.stamina+o.heal.stamina);
+    if(o.hidden){
+      if(o.hidden.wrist) P.injuryWrist=clamp(P.injuryWrist+o.hidden.wrist);
+      if(o.hidden.knee) P.injuryKnee=clamp(P.injuryKnee+o.hidden.knee);
+      if(o.hidden.wristHeal) P.injuryWrist=clamp(P.injuryWrist-o.hidden.wristHeal);
+      if(o.hidden.kneeHeal) P.injuryKnee=clamp(P.injuryKnee-o.hidden.kneeHeal);
+    }
+    if(o.chem&&P.partner) P.partner.chem=clamp(P.partner.chem+o.chem);
+    if(o.newPartner){ this.newPartner(); }
+    if(o.betterPartner){ this.newPartner(true); }
+    if(o.set){
+      const s=o.set;
+      if(s.discipline) P.discipline=s.discipline;
+      if(s.partnerNew) this.newPartner();
+      if(s.pos) P.pos=s.pos;
+      if(s.level) P.level=s.level;
+      if(s.brand) P.racket.brand=s.brand;
+      if(s.tension){ P.racket.tension=s.tension; }
+      if(s.retireNow){ this.doRetire(); return; }
+    }
+    Ranking.recompute();
+    if(o.log) Feed.toast(o.log, o.hidden&&(o.hidden.wrist||o.hidden.knee)?"bad":"good",3200);
+    Achievements.check();
+    Hub.renderHeader&&Hub.renderHeader();
+    if($("s-hub").classList.contains("on")) UI.hubTab("season");
+    Game.save();
+    if(cb) cb();
+  },
+  newPartner(strong){
+    P.partnerHistory=(P.partnerHistory||0)+1;
+    const base=45+Math.min(40,(P.seasonNo||0)*2)+(strong?18:0);
+    P.partner={name:pick(OPP_FIRST), chem:irnd(35,50), skill:clamp(base+irnd(-8,10)), matches:0};
+    Feed.toast(`🤝 新搭檔：${P.partner.name}（默契 ${P.partner.chem} · 實力 ${P.partner.skill}）`,"good");
+  },
+  doRetire(){ CareerEnd.show(); }
+};
+
+/* =========================================================================
+   MODAL
+   ========================================================================= */
+const Modal={
+  open(html,persistent=false){ $("modal").innerHTML=html; $("overlay").classList.add("on");
+    $("overlay")._persist=persistent; },
+  close(){ $("overlay").classList.remove("on"); }
+};
+$("overlay").addEventListener("click",e=>{ if(e.target.id==="overlay"&&!$("overlay")._persist) Modal.close(); });
+
+/* =========================================================================
+   ACHIEVEMENTS
+   ========================================================================= */
+const ACHIEVEMENTS=[
+  {id:"first_title",icon:"🥇",name:"初奪冠軍",desc:"贏得生涯第一座冠軍。",cond:p=>p.titles.length>=1},
+  {id:"top100",icon:"📈",name:"擠進百大",desc:"世界排名進入前 100。",cond:p=>p.bestRank<=100},
+  {id:"top10",icon:"⭐",name:"世界前十",desc:"世界排名進入前 10。",cond:p=>p.bestRank<=10},
+  {id:"no1",icon:"👑",name:"登頂世界第一",desc:"世界排名達到 #1。",cond:p=>p.everNo1},
+  {id:"allengland",icon:"🌹",name:"全英之王",desc:"奪得全英 (Super 1000) 冠軍 3 次。",cond:p=>(p.majorTitles.s1000||0)>=3},
+  {id:"worlds",icon:"🌍",name:"世界冠軍",desc:"奪得世界錦標賽冠軍。",cond:p=>(p.majorTitles.worlds||0)>=1},
+  {id:"olympic",icon:"🥇",name:"奧運金牌",desc:"奪得奧運會金牌。",cond:p=>(p.majorTitles.olympic||0)>=1},
+  {id:"golden",icon:"🏆",name:"金滿貫",desc:"集齊奧運、世錦賽、總決賽三大冠軍。",cond:p=>(p.majorTitles.olympic||0)>=1&&(p.majorTitles.worlds||0)>=1&&(p.majorTitles.finals||0)>=1},
+  {id:"grinder",icon:"💪",name:"鐵人生涯",desc:"生涯累積 100 場勝利。",cond:p=>p.careerWins>=100},
+  {id:"veteran",icon:"🎖️",name:"常青樹",desc:"打到 33 歲仍在職業賽場。",cond:p=>p.age>=33},
+  {id:"switch5",icon:"🔁",name:"拆夥魔咒",desc:"生涯更換過 5 位以上雙打搭檔。",cond:p=>(p.partnerHistory||0)>=5},
+  {id:"nowin",icon:"💔",name:"悲情無冕王",desc:"曾達世界第一，但大賽全數止步。",cond:p=>p.everNo1&&!p.majorTitles.olympic&&!p.majorTitles.worlds&&Object.keys(p.majorTitles).length===0},
+  {id:"rich",icon:"💎",name:"商業帝國",desc:"生涯資金累積突破 $1,000,000。",cond:p=>p.money>=1000000},
+  {id:"fame",icon:"🌟",name:"家喻戶曉",desc:"知名度達到 90。",cond:p=>p.attrs.fame>=90},
+  {id:"evergreen",icon:"🌲",name:"羽壇長青",desc:"打到 39 歲仍征戰職業賽場。",cond:p=>p.age>=39},
+  {id:"triple",icon:"🎪",name:"單季三冠",desc:"同一賽季內奪得 3 座以上冠軍。",cond:p=>p.titles.filter(t=>t.year===p.year).length>=3},
+  {id:"titles20",icon:"👑",name:"冠軍收藏家",desc:"生涯累積 20 座冠軍。",cond:p=>p.titles.length>=20},
+  {id:"win200",icon:"💯",name:"兩百勝里程碑",desc:"生涯累積 200 場勝利。",cond:p=>p.careerWins>=200},
+  {id:"transform",icon:"🦋",name:"浴火重生",desc:"生涯中完成一次打法轉型。",cond:p=>!!p.styleTransformed},
+];
+const Achievements={
+  check(){
+    ACHIEVEMENTS.forEach(a=>{
+      if(!P.ach.has(a.id)&&a.cond(P)){
+        P.ach.add(a.id);
+        Feed.toast(`🏅 解鎖成就：${a.icon} ${a.name}`,"gold",3600);
+      }
+    });
+    Game.save();
+  }
+};
+
+/* =========================================================================
+   CAREER END
+   ========================================================================= */
+const CareerEnd={
+  show(){
+    P.retired=true;
+    Achievements.check();
+    const majors=Object.entries(P.majorTitles);
+    const tier= P.everNo1&&(P.majorTitles.olympic||P.majorTitles.worlds)?"傳奇 (Legend)"
+      : P.bestRank<=5?"世界頂尖 (Elite)"
+      : P.bestRank<=20?"世界一流 (World Class)"
+      : P.bestRank<=100?"職業好手 (Pro)":"熱血追夢者 (Journeyman)";
+    UI.show("s-end");
+    $("end-body").innerHTML=`
+      <div class="center" style="margin-top:24px">
+        <div style="font-size:44px">🎖️</div>
+        <h1 style="margin-top:10px">生涯落幕</h1>
+        <div class="sub" style="margin-top:6px">${P.name} · ${P.year} · ${P.age} 歲退役</div>
+      </div>
+      <div class="card">
+        <div class="center goldtext big">${tier}</div>
+        <div class="divider"></div>
+        <div class="kv"><span class="k">生涯最高排名</span><span class="v mono">#${P.bestRank}</span></div>
+        <div class="kv"><span class="k">生涯戰績</span><span class="v mono">${P.careerWins} 勝 ${P.careerLosses} 敗</span></div>
+        <div class="kv"><span class="k">冠軍總數</span><span class="v mono">🏆 ${P.titles.length}</span></div>
+        <div class="kv"><span class="k">大賽冠軍</span><span class="v mono">${majors.length?majors.map(([k,v])=>LEVEL_BY[k].name.replace(/·.*/,'')+"×"+v).join("、"):"—"}</span></div>
+        <div class="kv"><span class="k">生涯資金</span><span class="v mono goldtext">$${round(P.money).toLocaleString()}</span></div>
+        <div class="kv"><span class="k">解鎖成就</span><span class="v mono">${P.ach.size} / ${ACHIEVEMENTS.length}</span></div>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--gold);margin-bottom:10px">🏅 生涯成就</h3>
+        <div class="achgrid">${ACHIEVEMENTS.filter(a=>P.ach.has(a.id)).map(a=>`
+          <div class="ach got"><div class="ico">${a.icon}</div><div class="an">${a.name}</div></div>`).join("")||'<div class="sub small">尚無解鎖的成就。</div>'}</div>
+      </div>
+      <button class="btn primary" onclick="Game.save();UI.show('s-hub');Hub.enter()">回顧生涯檔案</button>
+      <button class="btn" onclick="localStorage.removeItem(SAVE_KEY);UI.show('s-title')">🏸 開啟新的生涯</button>
+      <div class="tapnote">感謝你的球員生涯。傳奇不會被遺忘。</div>`;
+  }
+};
+
+/* =========================================================================
+   NEWS TICKER — 台灣選手國際賽場快訊
+   ========================================================================= */
+const Ticker={
+  items:[
+    ['戴資穎','生涯累積 <b>128 週</b>世界球后，傳奇不朽'],
+    ['李洋 / 王齊麟','<b>奧運男雙金牌</b>，中華隊史寫下新頁'],
+    ['周天成','再闖 <b>Super 750</b> 決賽，穩居世界前段班'],
+    ['王子維','世界排名重返 <b>前十</b>，狀態回勇'],
+    ['中華隊','<b>湯姆斯盃</b>力克強敵、挺進八強'],
+    ['中華隊','<b>優霸盃</b>女團寫下近年最佳戰績'],
+    ['李佳馨 / 楊博涵','混雙 <b>Super 300</b> 封王'],
+    ['邱相榤 / 李哲輝','男雙鏖戰三局晉級 <b>四強</b>'],
+    ['林芷宵','女單國際挑戰賽 <b>奪冠</b>，新星崛起'],
+    ['許玄智','苦戰三局爆冷擊敗 <b>世界第三</b>'],
+    ['白馭珀','女單世錦賽闖進 <b>16 強</b>'],
+    ['蘇敬恒 / 葉宏蔚','男雙首輪扳倒 <b>奧運冠軍</b>'],
+    ['宋碩芸','女單 <b>Super 100</b> 亞軍，直逼生涯新高'],
+    ['中華隊','<b>蘇迪曼盃</b>混合團體挺進複賽'],
+    ['張允澤','青少年亞錦賽 <b>男單金牌</b>，被譽為明日之星'],
+  ],
+  build(year){
+    const yr = year||2026;
+    const dyn = [
+      ['BWF', `<b>${yr}</b> 世界巡迴賽開打，中華隊全員出征`],
+      ['世界排名', `本週 <span class="g">中華台北</span> 共 <b>6</b> 位選手擠進各單項前 20`],
+    ];
+    let pool = this.items.concat(dyn);
+    // shuffle (browser Math.random ok)
+    for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+    const one = pool.map(([who,txt])=>
+      `<span class="tk-item">🏸 <b>${who}</b> — ${txt}</span><span class="tk-sep">◆</span>`).join("");
+    const track=$("tk-track");
+    track.innerHTML = one+one; // duplicate for seamless loop
+    // speed proportional to content so it always reads at a steady pace
+    const secs = Math.max(38, Math.min(120, Math.round(pool.length*4.2)));
+    track.style.animationDuration = secs+"s";
+  }
+};
+
+/* =========================================================================
+   GLOBAL STATS — 全球開啟生涯計數 (Abacus counter API)
+   ========================================================================= */
+const Stats={
+  NS:"racketlife-tw", KEY:"careers",
+  url(op){ return `https://abacus.jasoncameron.dev/${op}/${this.NS}/${this.KEY}`; },
+  async load(){
+    try{
+      const r=await fetch(this.url("get"),{cache:"no-store"});
+      const j=await r.json();
+      this.render(typeof j.value==="number"?j.value:0);
+    }catch(e){ this.render(null); }
+  },
+  async bump(){
+    try{
+      const r=await fetch(this.url("hit"),{cache:"no-store"});
+      const j=await r.json();
+      if(typeof j.value==="number") this.render(j.value);
+    }catch(e){}
+  },
+  render(v){
+    const el=$("gstat-num"); if(!el) return;
+    if(v==null){ el.textContent="離線"; return; }
+    const start=parseInt(el.dataset.v||"0",10)||0, end=v; el.dataset.v=end;
+    const dur=800, t0=performance.now();
+    const step=(t)=>{ const p=Math.min(1,(t-t0)/dur);
+      el.textContent=Math.round(start+(end-start)*(1-Math.pow(1-p,3))).toLocaleString();
+      if(p<1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  }
+};
+
+/* =========================================================================
+   BOOT
+   ========================================================================= */
+// always start at the very top on refresh (disable browser scroll restore)
+if('scrollRestoration' in history){ history.scrollRestoration='manual'; }
+window.scrollTo(0,0);
+window.addEventListener('load',()=>window.scrollTo(0,0));
+Ticker.build();
+UI.refreshTitle();
+Stats.load();
+</script>
+</body>
+</html>
