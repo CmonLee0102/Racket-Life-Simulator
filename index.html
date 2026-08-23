@@ -77,6 +77,19 @@
   .pill.gold{color:var(--gold);border-color:#4a3f1d}
 
   /* Title */
+  #s-title{position:relative}
+  .news-btn{position:absolute;top:10px;right:12px;z-index:10;width:auto;margin:0;
+    background:linear-gradient(180deg,#20242c,#171a20);border:1px solid var(--line2);color:var(--sub);
+    padding:7px 12px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px}
+  .news-btn:hover{border-color:var(--neon);color:var(--ink)}
+  .news-dot{width:7px;height:7px;border-radius:50%;background:var(--neon);box-shadow:0 0 8px var(--neon);animation:blink 1.4s infinite}
+  .clog{border-left:2px solid var(--line2);padding:0 0 4px 14px;margin:0 0 4px}
+  .clog .cver{font-weight:800;font-size:13px;color:var(--neon);margin-bottom:4px;position:relative}
+  .clog .cver::before{content:"";position:absolute;left:-19px;top:3px;width:9px;height:9px;border-radius:50%;background:var(--neon)}
+  .clog.old .cver{color:var(--sub)}
+  .clog.old .cver::before{background:var(--line2)}
+  .clog ul{margin:0 0 12px;padding-left:16px}
+  .clog li{font-size:12.5px;color:var(--sub);line-height:1.6;margin:2px 0}
   .logo{font-size:40px;font-weight:900;letter-spacing:2px;line-height:1;margin-top:10px}
   .logo .y{color:var(--neonY)}
   .logoplate{display:inline-block;padding:10px 6px;margin-top:2px;background:none}
@@ -134,6 +147,41 @@
   .profilerow #radar{width:100%;max-width:190px;height:auto;aspect-ratio:1/1}
   .profilerow .attrgrid{grid-template-columns:1fr}
   @media(max-width:430px){ .profilerow{flex-direction:column} .profilerow .attrgrid{grid-template-columns:1fr 1fr} }
+  /* event banners (region-themed) */
+  .ebanner{position:relative;width:100%;height:100px;border-radius:14px;overflow:hidden;border:1px solid var(--line2)}
+  .ebanner.big{height:170px}
+  .ebanner-sky{position:absolute;inset:0}
+  .ebanner-glow{position:absolute;inset:0;z-index:1}
+  .ebanner-stripe{position:absolute;top:0;left:0;right:0;height:5px;z-index:3}
+  .ebanner-sun{position:absolute;left:50%;top:42%;width:84px;height:84px;transform:translate(-50%,-50%);border-radius:50%;filter:blur(1px);z-index:1}
+  .ebanner.big .ebanner-sun{width:120px;height:120px}
+  .ebanner-refl{position:absolute;left:50%;top:52%;width:30px;height:46%;transform:translateX(-50%);
+    z-index:1;filter:blur(4px);opacity:.45;border-radius:0 0 50% 50%}
+  .ebanner.big .ebanner-refl{width:46px}
+  .ebanner-decor{position:absolute;inset:0;z-index:1}
+  .ebanner-art{position:absolute;left:0;bottom:0;width:100%;height:80%;z-index:2}
+  .ebanner-tags{position:absolute;inset:0;z-index:4;padding:9px 11px;display:flex;flex-direction:column;justify-content:space-between}
+  .ebanner-tags .row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .ebadge{background:rgba(8,9,12,.6);border:1px solid rgba(255,255,255,.18);border-radius:20px;
+    padding:3px 10px;font-size:11px;font-weight:700;backdrop-filter:blur(3px);white-space:nowrap}
+  .ebadge.hot{background:linear-gradient(90deg,#f59e0b,#f97316);border-color:transparent;color:#160d02}
+  .etitle{font-size:15px;font-weight:800;text-shadow:0 2px 8px rgba(0,0,0,.75);display:flex;align-items:center;gap:7px}
+  .ebanner.big .etitle{font-size:20px}
+  .ecard{margin:0 0 12px;cursor:pointer;transition:transform .12s}
+  .ecard:hover{transform:translateY(-2px)}
+  .ecard.locked{opacity:.5;cursor:default}
+  .ecard.locked:hover{transform:none}
+  /* world rankings board */
+  .rankrow{display:grid;grid-template-columns:36px 26px 1fr auto;align-items:center;gap:8px;
+    padding:9px 10px;border-bottom:1px solid var(--line);font-size:13px}
+  .rankrow .rk{font-weight:800;color:var(--sub);text-align:center;font-variant-numeric:tabular-nums}
+  .rankrow .rk.g1{color:var(--gold)}.rankrow .rk.g2{color:#cbd5e1}.rankrow .rk.g3{color:#d8a15a}
+  .rankrow .fl{font-size:16px;text-align:center}
+  .rankrow .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rankrow .pts{color:var(--sub);font-size:12px;font-variant-numeric:tabular-nums}
+  .rankrow.you{background:linear-gradient(90deg,rgba(215,255,50,.12),transparent);border-radius:8px;border-bottom-color:transparent}
+  .rankrow.you .rk,.rankrow.you .nm{color:var(--neon)}
+  .rankdiv{text-align:center;color:var(--dim);padding:4px;font-size:14px;letter-spacing:2px}
   .grp{margin:14px 0}
   .grp h3{font-size:12px;color:var(--sub);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;
     padding-bottom:6px;border-bottom:1px solid var(--line)}
@@ -230,6 +278,7 @@
 
   <!-- TITLE -->
   <section id="s-title" class="screen on">
+    <button class="news-btn" onclick="News.open()">📢 最新更新 <span class="news-dot"></span></button>
     <div class="titlecard">
       <div class="logoplate"><img class="logoimg" src="logo.png" alt="RACKET LIFE"></div>
       <div class="sub" style="margin-top:10px;letter-spacing:3px;font-size:12px">羽 球 職 業 生 涯 模 擬 器</div>
@@ -313,6 +362,28 @@
     <div class="wrap" id="shop-body"></div>
   </section>
 
+  <!-- WORLD RANKINGS -->
+  <section id="s-rankings" class="screen">
+    <div class="hdr"><div class="top"><div class="who">🌍 世界排名榜</div>
+      <button class="btn ghost" style="width:auto;margin:0;padding:6px 12px" onclick="Rankings.back()">◀ 返回</button></div></div>
+    <div class="wrap" id="rankings-body"></div>
+  </section>
+
+  <!-- SEASON CALENDAR -->
+  <section id="s-calendar" class="screen">
+    <div class="hdr"><div class="top"><div><div class="who" id="cal-title">🗓️ 賽季行事曆</div>
+      <div class="meta" id="cal-sub"></div></div>
+      <button class="btn ghost" style="width:auto;margin:0;padding:6px 12px" onclick="Sched.back()">◀ 返回賽季</button></div></div>
+    <div class="wrap" id="calendar-body"></div>
+  </section>
+
+  <!-- EVENT DETAIL -->
+  <section id="s-event" class="screen">
+    <div class="hdr"><div class="top"><div class="who">賽事詳情</div>
+      <button class="btn ghost" style="width:auto;margin:0;padding:6px 12px" onclick="Sched.open()">◀ 返回行事曆</button></div></div>
+    <div class="wrap" id="event-body"></div>
+  </section>
+
   <!-- MATCH -->
   <section id="s-match" class="screen">
     <div class="wrap">
@@ -391,7 +462,10 @@ const LEVELS=[
   {id:"worlds",  name:"世界錦標賽",   pts:13000,money:100000,fame:30,rankReq:24,  rounds:6, oppLo:66,oppHi:94,major:"世錦"},
   {id:"finals",  name:"世界巡迴賽總決賽",pts:12000,money:180000,fame:28,rankReq:8,rounds:4,oppLo:78,oppHi:95,major:"總決賽"},
   {id:"olympic", name:"奧林匹克運動會",pts:14000,money:80000,fame:40,rankReq:20,  rounds:6, oppLo:68,oppHi:96,major:"奧運"},
+  {id:"thomas",  name:"湯姆斯盃 · 男子團體",pts:3000,money:30000,fame:22,rankReq:80,rounds:4,oppLo:66,oppHi:90,team:true,major:"湯盃"},
+  {id:"sudirman",name:"蘇迪曼盃 · 混合團體",pts:2800,money:28000,fame:20,rankReq:95,rounds:4,oppLo:64,oppHi:88,team:true,major:"蘇盃"},
 ];
+const COUNTRIES=["丹麥","印尼","中國","日本","印度","馬來西亞","泰國","韓國","法國"];
 const LEVEL_BY={};LEVELS.forEach(l=>LEVEL_BY[l.id]=l);
 
 /* Random opponent names */
@@ -643,8 +717,9 @@ const Create={
       partnerHistory:0,
       log:[], ach:new Set(),
       milestonesDone:{}, phase:"youth",
-      retired:false, seasonNo:0,
+      retired:false, seasonNo:0, calendar:[],
     };
+    Season.buildCalendar();
     Feed.toast(`🏸 ${P.name} 的羽球之路自 12 歲展開`,"good");
     Hub.enter();
   }
@@ -670,7 +745,7 @@ const Hub={
           <div class="who">${P.name} <span class="pill ${P.hand==='left'?'sky':''}" style="margin-left:6px">${P.hand==='left'?'左手':'右手'} · ${STYLES[P.style].icon}${STYLES[P.style].name}</span></div>
           <div class="meta">AGE ${P.age} · ${P.year} 賽季 · ${this.levelName()} · ${this.phaseName()}</div>
         </div>
-        <div class="rank">世界排名<br><b class="mono" style="${P.age<15?'font-size:13px;color:var(--sky)':''}">${this.rankText()}</b></div>
+        <div class="rank" onclick="Rankings.open()" style="cursor:pointer">世界排名 🌍<br><b class="mono" style="${P.age<15?'font-size:13px;color:var(--sky)':''}">${this.rankText()}</b></div>
       </div>
       <div class="bars">
         <div class="bar stam ${stamCls}"><div class="lab"><span>體能</span><span class="mono">${round(P.stamina)}%</span></div>
@@ -693,7 +768,9 @@ const Hub={
     const series=(P.history||[]).concat([live]);
     const best=P.bestRank>=9999?"—":"#"+P.bestRank;
     b.innerHTML=`
-      <div class="grp" style="margin-top:0"><h3>世界排名走勢 · 生涯最高 ${best}</h3>
+      <button class="btn" onclick="Rankings.open()" style="margin-top:0">🌍 世界排名榜
+        <span class="sub">看看你在世界頂尖選手中的位置</span></button>
+      <div class="grp"><h3>世界排名走勢 · 生涯最高 ${best}</h3>
         <div class="card" style="margin-top:0">
           ${series.filter(s=>s.age>=15&&s.rank<9999).length>=1
             ? `<canvas id="rankchart" width="600" height="220" style="width:100%;height:auto;display:block"></canvas>`
@@ -777,8 +854,8 @@ const Hub={
             <button class="btn primary" ${(forced||rehab)?'disabled':''} onclick="Train.open()">🏋️ 集訓（提升屬性 · 耗體能）
               <span class="sub">選擇主攻方向強化，體能不足時效果打折</span>
               <span class="tag">${P.seasonPlayed?'可再練':'開季'}</span></button>
-            <button class="btn primary" ${rehab?'disabled':''} onclick="Sched.open()">🏸 選擇賽程 · 出戰
-              <span class="sub">${rehab?'復健中無法出賽':forced?'唯一可用行動 — 前往賽場':'依世界排名解鎖更高級別賽事，贏取積分與獎金'}</span></button>
+            <button class="btn primary" ${rehab?'disabled':''} onclick="Sched.open()">🗓️ 賽季行事曆 · 出戰
+              <span class="sub">${rehab?'復健中無法出賽':forced?'唯一可用行動 — 前往賽場':'世界各地賽站，自由選擇要參加哪些'}</span></button>
             <button class="btn" ${forced?'disabled':''} onclick="Hub.rest()">${rehab?'🩹 復健休養':'🧘 休整一週'}（回體能 · 修復傷病）
               <span class="sub">${rehab?'推進復健 -1 週 · 體能 +30 · 傷病 -15':'體能 +30 · 傷病 -15 · 但排名積分自然衰減'}</span>
               ${rehab?'':`<span class="tag">剩 ${P.restsLeft??5} 次</span>`}</button>
@@ -1148,43 +1225,129 @@ const Injury={
 };
 
 /* =========================================================================
-   SCHEDULE / choose tournament
+   EVENT BANNERS — 各地區主題橫幅（CSS 漸層 + SVG 剪影，離線生成）
    ========================================================================= */
+const THEMES={
+  tropical:{sky1:"#2a1a4a",sky2:"#ff7a3c",sun:"#ffe0a0",stripe:"linear-gradient(90deg,#e11d48,#f59e0b)",art:"petronas"},
+  denmark: {sky1:"#241a3a",sky2:"#ff7e33",sun:"#ffcf6b",stripe:"linear-gradient(90deg,#c8102e,#f0f0f0)",art:"windmill"},
+  england: {sky1:"#39414f",sky2:"#9aa6bd",sun:"#dfe7f2",stripe:"linear-gradient(90deg,#0b6b3a,#e5e7eb)",art:"bigben"},
+  prague:  {sky1:"#1e2748",sky2:"#c07a9a",sun:"#f0c67a",stripe:"linear-gradient(90deg,#11457e,#d7141a)",art:"gothic"},
+  japan:   {sky1:"#241f4d",sky2:"#ff9a8b",sun:"#fff0a6",stripe:"linear-gradient(90deg,#bc002d,#f0f0f0)",art:"mountain"},
+  china:   {sky1:"#3a1030",sky2:"#ff6a5e",sun:"#ffd27a",stripe:"linear-gradient(90deg,#de2910,#ffde00)",art:"pagoda"},
+  india:   {sky1:"#3a2320",sky2:"#ffab40",sun:"#ffe08a",stripe:"linear-gradient(90deg,#ff9933,#138808)",art:"domes"},
+  thai:    {sky1:"#2e1a44",sky2:"#ffa64d",sun:"#ffe0a0",stripe:"linear-gradient(90deg,#a51931,#f4b400)",art:"temple"},
+  la:      {sky1:"#2a2a5a",sky2:"#ff8f5e",sun:"#ffe08a",stripe:"linear-gradient(90deg,#0ea5e9,#f59e0b)",art:"palms"},
+  worlds:  {sky1:"#1a2344",sky2:"#5a86c8",sun:"#dfeafc",stripe:"linear-gradient(90deg,#38bdf8,#d7ff32)",art:"stadium"},
+};
+const ART={
+  skyline:`<g fill="#1b2338"><rect x="0" y="84" width="34" height="16"/><rect x="108" y="80" width="26" height="20"/><rect x="200" y="82" width="34" height="18"/><rect x="360" y="80" width="34" height="20"/></g><rect x="0" y="98" width="400" height="22"/><rect x="18" y="70" width="24" height="30"/><rect x="46" y="54" width="18" height="46"/><rect x="70" y="80" width="30" height="20"/><rect x="150" y="42" width="16" height="58"/><rect x="170" y="34" width="10" height="66"/><rect x="300" y="62" width="26" height="38"/><rect x="332" y="50" width="16" height="50"/><rect x="356" y="70" width="34" height="30"/>`,
+  petronas:`<g fill="#1b2338"><rect x="14" y="82" width="20" height="18"/><rect x="298" y="80" width="26" height="20"/><rect x="356" y="84" width="30" height="16"/></g><rect x="0" y="100" width="400" height="20"/><g fill="#070a10"><path d="M150 100 L150 48 L153 44 L153 40 L157 40 L157 34 L161 34 L161 40 L165 40 L165 44 L168 48 L168 100 Z"/><rect x="158.4" y="22" width="1.6" height="12"/><path d="M232 100 L232 48 L235 44 L235 40 L239 40 L239 34 L243 34 L243 40 L247 40 L247 44 L250 48 L250 100 Z"/><rect x="240.4" y="22" width="1.6" height="12"/><rect x="168" y="66" width="64" height="3.5"/><path d="M186 69 L200 58 L214 69 L210 69 L200 61 L190 69 Z"/></g><g fill="#2a3550"><rect x="150" y="56" width="18" height="1.5"/><rect x="150" y="64" width="18" height="1.5"/><rect x="150" y="72" width="18" height="1.5"/><rect x="150" y="80" width="18" height="1.5"/><rect x="150" y="88" width="18" height="1.5"/><rect x="232" y="56" width="18" height="1.5"/><rect x="232" y="64" width="18" height="1.5"/><rect x="232" y="72" width="18" height="1.5"/><rect x="232" y="80" width="18" height="1.5"/><rect x="232" y="88" width="18" height="1.5"/></g><g fill="#ffd27a" opacity=".8"><rect x="154" y="60" width="2" height="2"/><rect x="162" y="76" width="2" height="2"/><rect x="236" y="68" width="2" height="2"/><rect x="244" y="84" width="2" height="2"/></g>`,
+  windmill:`<g fill="#1b2338"><path d="M0 90 Q120 82 400 88 L400 100 L0 100 Z"/></g><rect x="0" y="100" width="400" height="20"/><rect x="296" y="82" width="66" height="18"/><path d="M294 82 L364 82 L346 66 L312 66 Z"/><rect x="330" y="58" width="6" height="10"/><g fill="#ffd27a" opacity=".85"><rect x="304" y="86" width="6" height="7"/><rect x="318" y="86" width="6" height="7"/><rect x="346" y="86" width="6" height="7"/></g><path d="M68 100 L88 100 L83 54 L73 54 Z"/><rect x="70" y="72" width="16" height="3"/><path d="M71 54 Q78 45 85 54 Z"/><circle cx="78" cy="52" r="3"/><g transform="translate(78,52) rotate(20)"><rect x="-2.5" y="-34" width="5" height="68" rx="1.5"/><rect x="-34" y="-2.5" width="68" height="5" rx="1.5"/></g><g transform="translate(78,52) rotate(20)" fill="none" stroke="#2a3550" stroke-width="1"><rect x="-2" y="-33" width="4" height="66"/><rect x="-33" y="-2" width="66" height="4"/></g><g fill="#070a10"><path d="M180 98 L196 98 L192 94 L184 94 Z"/><path d="M188 94 L188 80 L200 92 Z"/></g>`,
+  bigben:`<g fill="#1b2338"><rect x="40" y="76" width="24" height="24"/><rect x="342" y="74" width="30" height="26"/></g><rect x="0" y="98" width="400" height="22"/><rect x="228" y="70" width="92" height="30"/><g fill="#070a10"><rect x="234" y="60" width="4" height="10"/><rect x="250" y="62" width="4" height="8"/><rect x="298" y="60" width="4" height="10"/><rect x="314" y="62" width="4" height="8"/></g><rect x="150" y="44" width="26" height="56"/><circle cx="163" cy="55" r="7" fill="#f0ead0"/><circle cx="163" cy="55" r="7" fill="none" stroke="#070a10" stroke-width="1"/><rect x="162.2" y="50" width="1.5" height="5.5"/><rect x="163" y="54.3" width="4.5" height="1.4"/><rect x="150" y="38" width="26" height="6"/><path d="M148 38 L163 12 L178 38 Z"/><rect x="162" y="6" width="2" height="7"/><path d="M146 40 L150 30 L154 40 Z"/><path d="M172 40 L176 30 L180 40 Z"/>`,
+  gothic:`<g fill="#1b2338"><rect x="300" y="72" width="40" height="28"/></g><rect x="0" y="98" width="400" height="22"/><rect x="150" y="56" width="14" height="44"/><path d="M150 56 L157 22 L164 56 Z"/><rect x="156" y="15" width="2" height="8"/><rect x="168" y="56" width="14" height="44"/><path d="M168 56 L175 22 L182 56 Z"/><rect x="174" y="15" width="2" height="8"/><circle cx="166" cy="72" r="4" fill="#3a445e"/><rect x="120" y="74" width="24" height="26"/><path d="M120 74 L132 62 L144 74 Z"/><rect x="300" y="70" width="18" height="30"/><path d="M300 70 L309 58 L318 70 Z"/>`,
+  mountain:`<g fill="#2a3550"><path d="M0 100 L60 70 L120 100 Z"/><path d="M280 100 L340 72 L400 100 Z"/></g><rect x="0" y="100" width="400" height="20"/><path d="M30 100 L150 34 L270 100 Z"/><path d="M120 54 L150 34 L180 54 L166 58 L156 50 L150 55 L144 50 L134 58 Z" fill="#4a5a78"/><g transform="translate(66,0)"><rect x="-4" y="80" width="8" height="20"/><path d="M-14 80 L14 80 L9 74 L-9 74 Z"/><path d="M-11 72 L11 72 L7 66 L-7 66 Z"/><path d="M-8 64 L8 64 L4 58 L-4 58 Z"/><rect x="-1" y="50" width="2" height="8"/></g><g fill="#b3202f"><rect x="326" y="72" width="4.5" height="28"/><rect x="356" y="72" width="4.5" height="28"/><path d="M318 64 Q343 57 368 64 L366 69 Q343 63 320 69 Z"/><rect x="322" y="76" width="42" height="4"/></g>`,
+  pagoda:`<g fill="#2a2038"><rect x="300" y="72" width="20" height="28"/><rect x="326" y="64" width="14" height="36"/></g><rect x="0" y="100" width="400" height="20"/><rect x="60" y="96" width="72" height="4"/><g transform="translate(96,0)"><rect x="-7" y="60" width="14" height="36"/><rect x="-16" y="54" width="32" height="6"/><rect x="-12" y="42" width="24" height="6"/><rect x="-9" y="30" width="18" height="6"/><path d="M-34 62 Q-30 55 -20 53 L20 53 Q30 55 34 62 Q26 58 18 58 L-18 58 Q-26 58 -34 62 Z"/><path d="M-28 50 Q-24 43 -16 41 L16 41 Q24 43 28 50 Q21 46 14 46 L-14 46 Q-21 46 -28 50 Z"/><path d="M-22 38 Q-18 31 -11 29 L11 29 Q18 31 22 38 Q16 34 10 34 L-10 34 Q-16 34 -22 38 Z"/><path d="M-14 26 Q-8 18 0 16 Q8 18 14 26 Q7 22 0 22 Q-7 22 -14 26 Z"/><rect x="-1.5" y="4" width="3" height="13"/><circle cx="0" cy="4" r="2.6"/></g><g fill="#e5352b"><circle cx="150" cy="64" r="5"/><rect x="148.5" y="57" width="3" height="4"/><circle cx="46" cy="66" r="4.5"/><rect x="44.7" y="60" width="3" height="3.5"/></g>`,
+  domes:`<g fill="#2a2320"><rect x="40" y="82" width="16" height="18"/><rect x="344" y="82" width="16" height="18"/></g><rect x="0" y="100" width="400" height="20"/><rect x="150" y="98.5" width="100" height="1.5" fill="#3a445e"/><rect x="162" y="80" width="76" height="20"/><path d="M188 100 L188 86 Q200 74 212 86 L212 100 Z" fill="#1a2030"/><rect x="180" y="70" width="40" height="10"/><path d="M180 70 Q180 44 200 40 Q220 44 220 70 Z"/><path d="M200 40 Q193 32 200 24 Q207 32 200 40 Z"/><rect x="198.5" y="15" width="3" height="9"/><path d="M166 80 Q166 70 174 68 Q182 70 182 80 Z"/><path d="M218 80 Q218 70 226 68 Q234 70 234 80 Z"/><rect x="150" y="56" width="6" height="44"/><circle cx="153" cy="53" r="4"/><rect x="151.5" y="46" width="3" height="7"/><rect x="244" y="56" width="6" height="44"/><circle cx="247" cy="53" r="4"/><rect x="245.5" y="46" width="3" height="7"/><g fill="#2a3550"><rect x="150" y="66" width="6" height="1.4"/><rect x="150" y="76" width="6" height="1.4"/><rect x="244" y="66" width="6" height="1.4"/><rect x="244" y="76" width="6" height="1.4"/></g>`,
+  temple:`<g fill="#2a1a3a"><rect x="300" y="78" width="40" height="22"/></g><rect x="0" y="100" width="400" height="20"/><rect x="70" y="82" width="60" height="18"/><path d="M62 82 L138 82 L120 72 L80 72 Z"/><path d="M70 72 L130 72 L114 64 L86 64 Z"/><path d="M80 64 L120 64 L104 56 L96 56 Z"/><path d="M100 56 L96 44 L100 20 L104 44 Z"/><rect x="99" y="12" width="2" height="8"/><g fill="#f4b400" opacity=".85"><path d="M78 72 L73 67 L81 70 Z"/><path d="M122 72 L127 67 L119 70 Z"/></g><rect x="300" y="78" width="40" height="22"/><path d="M296 78 L344 78 L320 62 Z"/>`,
+  palms:`<g fill="#2a2a5a"><path d="M0 96 Q120 78 260 92 T400 88 L400 100 L0 100 Z"/><rect x="150" y="76" width="10" height="20"/><rect x="164" y="70" width="8" height="26"/><rect x="176" y="80" width="12" height="16"/><rect x="220" y="74" width="9" height="22"/></g><path d="M0 102 Q140 90 280 100 T400 98 L400 120 L0 120 Z"/><g transform="translate(312,104)"><path d="M-2 0 L-4 -46 L4 -46 L2 0 Z"/><path d="M0 -46 Q-20 -54 -36 -46 Q-18 -52 0 -46"/><path d="M0 -46 Q20 -54 36 -46 Q18 -52 0 -46"/><path d="M0 -46 Q-8 -66 -20 -70 Q-4 -62 0 -46"/><path d="M0 -46 Q8 -66 20 -70 Q4 -62 0 -46"/></g><g transform="translate(66,104) scale(.82)"><path d="M-2 0 L-4 -46 L4 -46 L2 0 Z"/><path d="M0 -46 Q-20 -54 -36 -46 Q-18 -52 0 -46"/><path d="M0 -46 Q20 -54 36 -46 Q18 -52 0 -46"/><path d="M0 -46 Q-8 -66 -20 -70 Q-4 -62 0 -46"/><path d="M0 -46 Q8 -66 20 -70 Q4 -62 0 -46"/></g><g transform="translate(200,104) scale(.66)"><path d="M-2 0 L-4 -46 L4 -46 L2 0 Z"/><path d="M0 -46 Q-20 -54 -36 -46 Q-18 -52 0 -46"/><path d="M0 -46 Q20 -54 36 -46 Q18 -52 0 -46"/></g>`,
+  stadium:`<g fill="#2a3550"><path d="M120 100 Q120 60 200 60 Q280 60 280 100 Z"/></g><rect x="0" y="100" width="400" height="20"/><path d="M104 100 Q104 66 200 66 Q296 66 296 100 Z"/><path d="M122 100 Q122 76 200 76 Q278 76 278 100 Z" fill="#2a3550"/><g stroke="#2a3550" stroke-width="1" fill="none"><path d="M120 82 Q200 70 280 82"/><path d="M116 90 Q200 80 284 90"/></g><rect x="70" y="72" width="4" height="28"/><rect x="62" y="66" width="20" height="6"/><rect x="326" y="72" width="4" height="28"/><rect x="318" y="66" width="20" height="6"/><g fill="#dfeafc" opacity=".85"><rect x="64" y="67" width="3" height="2"/><rect x="70" y="67" width="3" height="2"/><rect x="76" y="67" width="3" height="2"/><rect x="320" y="67" width="3" height="2"/><rect x="326" y="67" width="3" height="2"/><rect x="332" y="67" width="3" height="2"/></g>`,
+};
+const DECOR=`<g fill="#ffffff"><circle cx="40" cy="20" r="1" opacity=".7"/><circle cx="92" cy="14" r="1.2" opacity=".6"/><circle cx="150" cy="24" r="1" opacity=".45"/><circle cx="330" cy="18" r="1.2" opacity=".7"/><circle cx="372" cy="30" r="1" opacity=".5"/><circle cx="284" cy="12" r="1" opacity=".6"/><circle cx="214" cy="15" r="1" opacity=".45"/></g><g fill="#ffffff" opacity=".09"><ellipse cx="112" cy="30" rx="34" ry="7"/><ellipse cx="320" cy="44" rx="28" ry="6"/></g><g fill="none" stroke="#0a0c12" stroke-width="1.6" opacity=".5" stroke-linecap="round"><path d="M186 34 q5 -5 10 0 q5 -5 10 0"/><path d="M212 42 q4 -4 8 0 q4 -4 8 0"/><path d="M168 44 q4 -4 8 0 q4 -4 8 0"/></g>`;
+const Banner={
+  render(ev, big, tagsHTML){
+    const t=THEMES[ev.theme]||THEMES.tropical;
+    return `<div class="ebanner ${big?'big':''}">
+      <div class="ebanner-sky" style="background:linear-gradient(180deg,${t.sky1} 0%,${t.sky2} 100%)"></div>
+      <div class="ebanner-glow" style="background:radial-gradient(58% 85% at 50% 60%, ${t.sun}55, transparent 72%)"></div>
+      <div class="ebanner-sun" style="background:radial-gradient(circle,${t.sun},${t.sun}00 68%)"></div>
+      <div class="ebanner-refl" style="background:linear-gradient(180deg,${t.sun}, ${t.sun}00)"></div>
+      <svg class="ebanner-decor" viewBox="0 0 400 120" preserveAspectRatio="xMidYMid slice">${DECOR}</svg>
+      <svg class="ebanner-art" viewBox="0 0 400 120" preserveAspectRatio="xMidYMax slice" fill="#070a10">${ART[t.art]||ART.skyline}</svg>
+      <div class="ebanner-stripe" style="background:${t.stripe}"></div>
+      ${tagsHTML?`<div class="ebanner-tags">${tagsHTML}</div>`:""}
+    </div>`;
+  }
+};
+
+/* =========================================================================
+   SCHEDULE / calendar
+   ========================================================================= */
+const MONTHS=["","1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
 const Sched={
+  eligible(e){
+    const L=LEVEL_BY[e.level];
+    if(e.level==="junior") return P.age<=15;
+    if(P.age<15) return false;
+    if(L.major||L.team) return P.rank<=L.rankReq || P.rank<=(L.rankReq+8);
+    return P.rank<=L.rankReq;
+  },
+  levelShort(L){ return L.team?'團體':L.major?'大賽':L.name.replace(/ .*/,''); },
   open(){
     if(Injury.blocked()){ Feed.toast(`🚑 ${P.injured.name} 復健中（剩 ${P.injured.weeksLeft} 週），無法出賽`,"bad"); return; }
-    const avail=LEVELS.filter(l=>{
-      if(l.id==="junior") return P.age<=15;          // junior circuit: 15 歲以下
-      if(P.age<15) return false;                      // 成人 BWF 賽事需滿 15 歲
-      if(l.major) return P.rank<=l.rankReq || P.rank<=(l.rankReq+8);
-      return P.rank<=l.rankReq;
-    });
-    // Always allow IC as floor for pros
-    if(!avail.find(l=>l.id==="ic") && P.age>=15) avail.unshift(LEVEL_BY.ic);
-    const isJr = P.age<15;
-    const html=`
-      <h2>🏸 選擇賽程</h2>
-      <div class="desc">${isJr
-        ? `你目前 <b>${P.age}</b> 歲，只能出戰<b style="color:var(--sky)">青少年賽</b>累積經驗與屬性；滿 <b>15 歲</b>才能打成人 BWF 賽事、開始計入世界排名。`
-        : `依世界排名 <b class="mono">${Hub.rankText()}</b> 解鎖賽事。級別越高積分獎金越多，但對手更強、耗體能更大。奪冠可累積生涯冠軍與稱號。`}</div>
-      ${avail.map(l=>{
-        const locked=false;
-        return `<div class="opt" onclick="Sched.enter('${l.id}')">
-          <div class="ot">${l.major?`<span class="pill gold" style="float:right">大賽</span>`:""}${l.name}</div>
-          <div class="oe" style="margin-top:7px">
-            <span class="chip up">冠軍 +${l.pts.toLocaleString()}pts</span>
-            <span class="chip">獎金 $${(l.money/1000)}k</span>
-            <span class="chip risk">${l.rounds} 輪</span>
-            <span class="chip">對手 ${l.oppLo}-${l.oppHi}</span></div>
+    // (re)build if missing OR from an older save without region themes
+    if(!P.calendar||!P.calendar.length||!P.calendar[0].theme){
+      const oldDone=(P.calendar||[]).filter(e=>e.done).map(e=>e.name);
+      Season.buildCalendar();
+      P.calendar.forEach(e=>{ if(oldDone.includes(e.name)) e.done=true; });
+      Game.save();
+    }
+    const done=P.calendar.filter(e=>e.done).length;
+    $("cal-sub").textContent=`${P.year} 賽季 · 已出賽 ${done}/${P.calendar.length} 站 · 排名 ${Hub.rankText()}`;
+    const cards=P.calendar.map((e,idx)=>{
+      const L=LEVEL_BY[e.level];
+      const ok=this.eligible(e)&&!e.done;
+      const status = e.done?`<span class="ebadge" style="color:#34d399">✓ 已出賽</span>`
+        : this.eligible(e)?`<span class="ebadge hot">可參加 ▶</span>`
+        : `<span class="ebadge" style="color:#c7c9cf">🔒 排名不足</span>`;
+      const tags=`
+        <div class="row">
+          <span class="ebadge">${MONTHS[e.month]} · ${this.levelShort(L)}</span>
+          <span class="ebadge">${e.flag} ${e.city}站</span>
+        </div>
+        <div class="row">
+          <span class="etitle">🏸 ${e.name}</span>
+          ${status}
         </div>`;
-      }).join("")}
-      <button class="btn ghost" onclick="Modal.close()" style="margin-top:12px">取消</button>`;
-    Modal.open(html);
+      return `<div class="ecard ${(e.done||!this.eligible(e))?'':''}" onclick="Sched.detail(${idx})">${Banner.render(e,false,tags)}</div>`;
+    }).join("");
+    const jr = P.age<15?`<div class="tapnote" style="text-align:left;margin:0 0 10px">你目前 ${P.age} 歲，只能出戰青少年賽；滿 15 歲才有成人巡迴賽與世界排名。</div>`:"";
+    $("calendar-body").innerHTML=jr+cards;
+    UI.show("s-calendar");
   },
-  enter(id){
-    Modal.close();
+  detail(idx){
+    const e=P.calendar[idx]; if(!e) return;
+    const L=LEVEL_BY[e.level];
+    const ok=this.eligible(e)&&!e.done;
+    const tags=`
+      <div class="row"><span class="ebadge">${MONTHS[e.month]} · ${P.year}</span><span class="ebadge">${e.flag} ${e.city}站</span></div>
+      <div class="row"><span class="etitle">🏸 ${e.name}</span></div>`;
+    const stamOk=P.stamina>=20;
+    let action;
+    if(e.done) action=`<button class="btn" disabled>✓ 本站已出賽</button>`;
+    else if(!this.eligible(e)) action=`<button class="btn" disabled>🔒 世界排名不足，無法參加</button>`;
+    else if(!stamOk) action=`<button class="btn" disabled>體能不足（需 ≥20%），先休整</button>`;
+    else action=`<button class="btn primary" onclick="Sched.enter(${idx})">▶ 出戰 ${e.name}</button>`;
+    $("event-body").innerHTML=`
+      ${Banner.render(e,true,tags)}
+      <div class="card">
+        <div class="kv"><span class="k">賽事級別</span><span class="v">${L.team?'國家團體賽':L.major?L.name.split(' ')[0]:L.name}</span></div>
+        <div class="kv"><span class="k">地點</span><span class="v">${e.flag} ${e.city} · ${MONTHS[e.month]}</span></div>
+        <div class="kv"><span class="k">${L.team?'奪冠積分':'冠軍積分'}</span><span class="v mono">+${L.pts.toLocaleString()} pts</span></div>
+        <div class="kv"><span class="k">冠軍獎金</span><span class="v mono goldtext">$${L.money.toLocaleString()}</span></div>
+        <div class="kv"><span class="k">賽制</span><span class="v">${L.rounds} 輪 ${L.team?'· 五點制對抗':''}</span></div>
+        <div class="kv"><span class="k">對手實力</span><span class="v mono">${L.oppLo} – ${L.oppHi}</span></div>
+      </div>
+      ${action}
+      <button class="btn ghost" onclick="Sched.open()">◀ 返回行事曆</button>`;
+    UI.show("s-event");
+  },
+  back(){ UI.show("s-hub"); UI.hubTab("season"); },
+  enter(idx){
+    const e=P.calendar[idx]; if(!e) return;
+    if(e.done){ Feed.toast("這一站已經打過了","bad"); return; }
+    if(!this.eligible(e)){ Feed.toast("排名尚不足以參加這一站","bad"); return; }
     if(P.stamina<20){ Feed.toast("體能不足以出戰，先休整","bad"); return; }
-    Match.startTournament(LEVEL_BY[id]);
+    Match.startTournament(LEVEL_BY[e.level], e);
   }
 };
 
@@ -1251,11 +1414,14 @@ const MATCH_DECISIONS=[
    ]},
 ];
 const Match={
-  startTournament(level){
-    M={ level, round:0, done:false, speed:1, instant:false };
+  startTournament(level, ev){
+    M={ level, ev:ev||null, round:0, done:false, speed:1, instant:false, teamMode:!!level.team };
     P.seasonPlayed=true;
     this.nextRound();
   },
+  evName(){ return M.ev?M.ev.name:M.level.name; },
+  evLoc(){ return M.ev?`${M.ev.flag} ${M.ev.city}`:""; },
+  teamStrength(){ const r=Math.min(P.rank,300); return clamp(56+(300-r)/300*34); },
   renderPlayControls(){
     const sp=M.speed||1;
     $("match-foot").innerHTML=`<div class="row">
@@ -1341,6 +1507,7 @@ const Match={
     const L=M.level; M.round++;
     if(M.round>L.rounds){ this.championship(); return; }
     M.opp=this.makeOpp();
+    if(M.teamMode) M.oppCountry=pick(COUNTRIES);
     M.challenges={you:3,opp:3};
     this.game={g1:[0,0],cur:[0,0],games:{you:0,opp:0},gameNo:1,serving:Math.random()<0.5?"you":"opp",over:false,history:[]};
     M.gamesWon={you:0,opp:0};
@@ -1358,7 +1525,8 @@ const Match={
   },
   renderRoundIntro(){
     const o=M.opp;
-    $("match-title").innerHTML=`<div class="pill gold">${M.level.name}</div>
+    $("match-title").innerHTML=`<div class="pill gold">${this.evName()}</div>
+      ${this.evLoc()?`<div class="sub small" style="margin-top:4px">📍 ${this.evLoc()}</div>`:""}
       <h2 style="margin-top:8px">${this.roundLabel()}</h2>`;
     const sty=STYLES[o.style];
     const edge = BEATS[P.style]===o.style?`<span style="color:var(--green)">你的打法克制對手 ▲</span>`
@@ -1366,9 +1534,11 @@ const Match={
       : `<span class="sub">打法互不克制</span>`;
     const partnerLine = (P.discipline==="doubles"&&P.partner)
       ? `<div class="pill sky" style="margin-bottom:10px">🤝 與 ${P.partner.name} 出戰 · 默契 ${round(P.partner.chem)} · 實力 ${round(P.partner.skill||55)}</div>` : "";
+    const teamLine = M.teamMode
+      ? `<div class="pill gold" style="margin-bottom:10px">🌍 團體對抗 · 🇹🇼 中華台北 vs ${M.oppCountry}</div><div class="sub small" style="margin-bottom:4px">你出戰第一單打，隊友的比賽將由隊伍實力決定</div>` : "";
     $("board").innerHTML=`<div style="padding:18px;text-align:center">
-      ${partnerLine}
-      <div class="sub small">對手</div>
+      ${teamLine}${partnerLine}
+      <div class="sub small">對手${M.teamMode?`（${M.oppCountry} 一單）`:""}</div>
       <div style="font-size:22px;font-weight:900;margin:6px 0">${o.name}</div>
       <div class="pill" style="color:${sty.color};border-color:${sty.color}44">${sty.icon} ${sty.name} · 實力 ${round(o.skill)}</div>
       <div style="margin-top:14px;font-size:13px">${edge}</div></div>`;
@@ -1558,14 +1728,16 @@ const Match={
     const o=M.opp;
     if(youWon){
       P.careerWins++; P.seasonW=(P.seasonW||0)+1; P.morale=clamp(P.morale+6);
-      this.addLine(`🎉 ${P.name} 擊敗 ${o.name}，晉級！`,"pt");
-      // injury risk from hard match
       if(Math.random()<0.06+(P.attrs.durability<45?.06:0)){ P.injuryKnee=clamp(P.injuryKnee+irnd(8,18)); }
-      // key-point achievement
-      $("match-foot").innerHTML=`<button class="btn primary" onclick="Match.afterWin()">繼續 ▶</button>`;
     } else {
       P.careerLosses++; P.seasonL=(P.seasonL||0)+1; P.morale=clamp(P.morale-10);
-      // ranking points for reaching this round
+    }
+    // team event: your match is one point of the tie — resolve the whole tie
+    if(M.teamMode){ this.resolveTie(youWon); Hub.renderHeader&&Hub.renderHeader(); return; }
+    if(youWon){
+      this.addLine(`🎉 ${P.name} 擊敗 ${o.name}，晉級！`,"pt");
+      $("match-foot").innerHTML=`<button class="btn primary" onclick="Match.afterWin()">繼續 ▶</button>`;
+    } else {
       const pts=Math.round(M.level.pts*this.roundShare(M.round-0.5));
       const money=Math.round(M.level.money*this.roundShare(M.round-0.5)*0.6);
       P.points+=pts; P.money+=money;
@@ -1573,6 +1745,36 @@ const Match={
       $("match-foot").innerHTML=`<button class="btn" onclick="Match.finishTournament(false)">返回賽季 ▶</button>`;
     }
     Hub.renderHeader&&Hub.renderHeader();
+  },
+  resolveTie(youWon){
+    const yourTeam=this.teamStrength(), oppTeam=M.opp.skill;
+    let us=youWon?1:0, them=youWon?0:1;
+    const labels=["第二單打","第一雙打","第二雙打","第三單打"];
+    this.addLine(`—— 團體對抗（五點制，先得 3 點）——`,"sys");
+    this.addLine(`第一單打 ${P.name}：${youWon?'<span class="p">勝</span>':'<span class="o">負</span>'}（${us}–${them}）`,"sys");
+    for(let i=0;i<4 && us<3 && them<3;i++){
+      const p=clamp(0.5+(yourTeam-oppTeam)/200+rnd(-0.15,0.15),0.12,0.9);
+      const w=Math.random()<p;
+      if(w) us++; else them++;
+      this.addLine(`${labels[i]}：${w?'<span class="p">勝</span>':'<span class="o">負</span>'}（${us}–${them}）`,"sys");
+    }
+    const tieWon=us>them;
+    this.renderTieBoard(us,them);
+    this.addLine(`${tieWon?'✅':'❌'} 🇹🇼 中華台北 ${us} : ${them} ${M.oppCountry} —— ${tieWon?'贏得這輪對抗！':'惜敗出局。'}`,"pt");
+    if(tieWon){
+      if(M.round>=M.level.rounds){ setTimeout(()=>this.championship(),400); }
+      else $("match-foot").innerHTML=`<button class="btn primary" onclick="Match.nextRound()">下一輪對抗 ▶</button>`;
+    } else {
+      const pts=Math.round(M.level.pts*this.roundShare(M.round-0.5));
+      P.points+=pts;
+      $("match-foot").innerHTML=`<button class="btn" onclick="Match.finishTournament(false)">返回賽季 ▶（+${pts}pts）</button>`;
+    }
+  },
+  renderTieBoard(us,them){
+    $("board").className="board"+(Math.max(us,them)>=3?" mp":"");
+    $("board").innerHTML=`
+      <div class="rowb"><div class="pname">🇹🇼 中華台北</div><div class="games"></div><div class="pt">${us}</div></div>
+      <div class="rowb"><div class="pname">${M.oppCountry}</div><div class="games"></div><div class="pt">${them}</div></div>`;
   },
   roundShare(r){ // fraction of points for reaching round r of total
     const t=M.level.rounds;
@@ -1589,19 +1791,20 @@ const Match={
   },
   championship(){
     const L=M.level;
-    P.titles.push({level:L.id,name:L.name,year:P.year});
+    P.titles.push({level:L.id,name:this.evName(),year:P.year});
     P.points+=L.pts; P.money+=L.money; P.attrs.fame=clamp(P.attrs.fame+L.fame);
     P.morale=clamp(P.morale+14);
     if(L.major){ P.majorTitles[L.id]=(P.majorTitles[L.id]||0)+1; }
-    this.addLine(`🏆🏆🏆 冠軍！${P.name} 奪得 ${L.name} 冠軍！(+${L.pts.toLocaleString()}pts · $${L.money.toLocaleString()})`,"pt");
-    Feed.toast(`🏆 ${L.name} 冠軍！`,"gold",3600);
-    $("match-title").innerHTML=`<div class="big goldtext">🏆 ${L.name}</div><div class="sub">CHAMPION</div>`;
+    this.addLine(`🏆🏆🏆 冠軍！${M.teamMode?'🇹🇼 中華台北':P.name} 奪得 ${this.evName()} 冠軍！(+${L.pts.toLocaleString()}pts · $${L.money.toLocaleString()})`,"pt");
+    Feed.toast(`🏆 ${this.evName()} 冠軍！`,"gold",3600);
+    $("match-title").innerHTML=`<div class="big goldtext">🏆 ${this.evName()}</div>${this.evLoc()?`<div class="sub">📍 ${this.evLoc()}</div>`:'<div class="sub">CHAMPION</div>'}`;
     $("match-foot").innerHTML=`<button class="btn primary" onclick="Match.finishTournament(true)">舉起獎盃 ▶</button>`;
     Achievements.check();
     Ranking.recompute();
     Hub.renderHeader();
   },
   finishTournament(won){
+    if(M.ev) M.ev.done=true;   // mark this calendar stop as played
     Ranking.recompute();
     Achievements.check();
     P.restsLeft=5;   // fresh 5 rests before the next match
@@ -1644,13 +1847,106 @@ const Ranking={
     P.rank=rank;
     if(rank<P.bestRank) P.bestRank=rank;
     if(rank===1) P.everNo1=true;
+  },
+  // inverse of the curve: points roughly needed to reach a given rank
+  pointsForRank(r){
+    const A=this.ANCHORS;
+    if(r>=A[0][1]) return 0;
+    if(r<=1) return A[A.length-1][0];
+    for(let i=0;i<A.length-1;i++){
+      const [p0,r0]=A[i],[p1,r1]=A[i+1];   // r0 > r1 as points rise
+      if(r<=r0 && r>=r1){ const t=(r0-r)/(r0-r1); return Math.round(p0+(p1-p0)*t); }
+    }
+    return A[A.length-1][0];
   }
+};
+
+/* =========================================================================
+   WORLD RANKINGS BOARD — Top 具名選手榜，你會插進去往上爬
+   ========================================================================= */
+const RANK_ROSTER=[
+  {name:"Viktor Axelsen",flag:"🇩🇰"},{name:"Shi Yuqi",flag:"🇨🇳"},
+  {name:"Kunlavut Vitidsarn",flag:"🇹🇭"},{name:"Anders Antonsen",flag:"🇩🇰"},
+  {name:"Kodai Naraoka",flag:"🇯🇵"},{name:"Jonatan Christie",flag:"🇮🇩"},
+  {name:"Anthony Ginting",flag:"🇮🇩"},{name:"Lakshya Sen",flag:"🇮🇳"},
+  {name:"Lee Zii Jia",flag:"🇲🇾"},{name:"周天成",flag:"🇹🇼"},
+  {name:"Loh Kean Yew",flag:"🇸🇬"},{name:"Li Shifeng",flag:"🇨🇳"},
+  {name:"Kenta Nishimoto",flag:"🇯🇵"},{name:"Weng Hongyang",flag:"🇨🇳"},
+  {name:"H.S. Prannoy",flag:"🇮🇳"},{name:"NG Ka Long",flag:"🇭🇰"},
+  {name:"王子維",flag:"🇹🇼"},{name:"Alex Lanier",flag:"🇫🇷"},
+  {name:"Kentaro Ito",flag:"🇯🇵"},{name:"Chico Aura",flag:"🇮🇩"},
+  {name:"Toma Popov",flag:"🇫🇷"},{name:"Brian Yang",flag:"🇨🇦"},
+  {name:"Rasmus Gemke",flag:"🇩🇰"},{name:"許玄智",flag:"🇹🇼"},
+];
+const Rankings={
+  buildField(){
+    return RANK_ROSTER.map((p,i)=>({name:p.name,flag:p.flag,points:Ranking.pointsForRank(i+1)}));
+  },
+  open(){
+    const ranked = P.age>=15 && P.rank<9999;
+    // named field at fixed base ranks; player uses their REAL rank, pushing named players down
+    const list=RANK_ROSTER.map((p,i)=>({ name:p.name, flag:p.flag,
+      rank:(ranked && P.rank<=i+1) ? i+2 : i+1, points:Ranking.pointsForRank(i+1) }));
+    if(ranked) list.push({ name:P.name, flag:"🏸", rank:P.rank, points:Math.round(P.points), isYou:true });
+    list.sort((a,b)=>a.rank-b.rank);
+    const youRow=list.find(p=>p.isYou);
+    const row=(p)=>{
+      const medal = p.rank<=3?`g${p.rank}`:"";
+      return `<div class="rankrow ${p.isYou?'you':''}">
+        <span class="rk ${medal}">${p.rank}</span>
+        <span class="fl">${p.flag}</span>
+        <span class="nm">${p.name}${p.isYou?' <span class="pill sky" style="padding:1px 7px">你</span>':''}</span>
+        <span class="pts mono">${p.points.toLocaleString()}</span></div>`;
+    };
+    const top=list.filter(p=>p.rank<=20);
+    let html=`<div class="grp" style="margin-top:0"><h3>世界排名 · 男子單打</h3>
+      <div class="card" style="margin-top:0;padding:6px 10px">${top.map(row).join("")}</div></div>`;
+    if(ranked && youRow && youRow.rank>20){
+      html+=`<div class="card" style="margin-top:10px;padding:6px 10px">
+        <div class="rankdiv">⋮</div>${row(youRow)}</div>`;
+    }
+    if(!ranked){
+      html+=`<div class="tapnote">你目前${P.age<15?'還在青少年組':'尚未進入世界排名'}，滿 15 歲並累積積分後，名字會插進榜上一起排。</div>`;
+    }
+    $("rankings-body").innerHTML=html;
+    UI.show("s-rankings");
+  },
+  back(){ UI.show("s-hub"); UI.hubTab("season"); }
 };
 
 /* =========================================================================
    SEASON / year-end
    ========================================================================= */
 const Season={
+  buildCalendar(){
+    if(P.age<15){
+      P.calendar=[
+        {level:"junior",name:"亞洲青少年錦標賽",city:"雅加達",flag:"🇮🇩",month:4,theme:"tropical",done:false},
+        {level:"junior",name:"世界青少年錦標賽",city:"聖菲",flag:"🇪🇸",month:10,theme:"prague",done:false},
+      ];
+      return;
+    }
+    const worldsHost=[["哥本哈根","🇩🇰","denmark"],["巴塞爾","🇨🇭","prague"],["東京","🇯🇵","japan"],["巴黎","🇫🇷","prague"],["新德里","🇮🇳","india"]][P.year%5];
+    const cal=[
+      {level:"s500", name:"馬來西亞公開賽",   city:"吉隆坡", flag:"🇲🇾", month:1, theme:"tropical"},
+      {level:"ic",   name:"印度國際挑戰賽",   city:"海得拉巴",flag:"🇮🇳", month:1, theme:"india"},
+      {level:"s300", name:"泰國大師賽",       city:"曼谷",   flag:"🇹🇭", month:2, theme:"thai"},
+      {level:"s1000",name:"全英公開賽",       city:"伯明罕", flag:"🏴", month:3, theme:"england"},
+      {level:"s100", name:"歐洲巡迴賽",       city:"布拉格", flag:"🇨🇿", month:4, theme:"prague"},
+      {level:"sudirman",name:"蘇迪曼盃 · 混合團體",city:"廈門",flag:"🇨🇳", month:5, theme:"china"},
+      {level:"s750", name:"印尼公開賽",       city:"雅加達", flag:"🇮🇩", month:6, theme:"tropical"},
+      {level:"s500", name:"新加坡公開賽",     city:"新加坡", flag:"🇸🇬", month:6, theme:"tropical"},
+      {level:"worlds",name:"世界錦標賽",      city:worldsHost[0],flag:worldsHost[1],month:8, theme:worldsHost[2]},
+      {level:"s750", name:"日本公開賽",       city:"東京",   flag:"🇯🇵", month:9, theme:"japan"},
+      {level:"s750", name:"中國公開賽",       city:"常州",   flag:"🇨🇳", month:9, theme:"china"},
+      {level:"thomas",name:"湯姆斯盃 · 男子團體",city:"成都", flag:"🇨🇳", month:10, theme:"china"},
+      {level:"s500", name:"丹麥公開賽",       city:"奧登斯", flag:"🇩🇰", month:10, theme:"denmark"},
+      {level:"finals",name:"世界巡迴賽總決賽", city:"杭州",   flag:"🇨🇳", month:12, theme:"china"},
+    ];
+    if(P.year%4===0) cal.splice(8,0,{level:"olympic",name:"奧林匹克運動會",city:"洛杉磯",flag:"🇺🇸",month:7, theme:"la"});
+    cal.forEach(e=>e.done=false);
+    P.calendar=cal;
+  },
   endYear(){
     if((P.restsLeft??5)<=0){ Feed.toast("休整次數已用盡，先出賽再結束賽季","bad"); return; }
     // record the season just completed (before aging)
@@ -1684,6 +1980,7 @@ const Season={
     P.injuryWrist=clamp(P.injuryWrist-10); P.injuryKnee=clamp(P.injuryKnee-10);
     P.seasonPlayed=false; P.restsLeft=5;
     Injury.progress(2);   // a whole season passes — rehab advances
+    this.buildCalendar();  // fresh calendar with new locations each year
     Hub.renderHeader(); UI.hubTab("season");
     Achievements.check();
     Game.save();
@@ -2079,6 +2376,55 @@ const Stats={
       el.textContent=Math.round(start+(end-start)*(1-Math.pow(1-p,3))).toLocaleString();
       if(p<1) requestAnimationFrame(step); };
     requestAnimationFrame(step);
+  }
+};
+
+/* =========================================================================
+   NEWS / CHANGELOG — 最新更新
+   ========================================================================= */
+const CHANGELOG=[
+  {ver:"賽事視覺 · 地標升級", items:[
+    "各賽站地標大幅精緻化：吉隆坡雙子星塔＋空橋、倫敦大笨鐘＋指針、泰姬瑪哈陵＋倒影池、中國多層飛簷寶塔＋紅燈籠、東京富士山＋鳥居＋三重塔、丹麥風車格柵葉片＋小帆船。",
+    "橫幅加入遠近層次、亮燈窗、星空、飛鳥、雲層與落日水面反光。",
+  ]},
+  {ver:"賽季行事曆", items:[
+    "行事曆改為獨立頁面，每站是帶地區主題橫幅的卡片；點入展開賽事詳情小頁面。",
+    "世界各地賽站（吉隆坡、曼谷、全英、雅加達、東京、杭州…），由你自由決定參加哪些。",
+    "每年地點會變：世錦賽主辦城市輪換、奧運每 4 年（洛杉磯）出現。",
+  ]},
+  {ver:"大賽與排名", items:[
+    "國家隊團體賽：湯姆斯盃／蘇迪曼盃，五點制對抗、你打一單、隊友模擬。",
+    "世界排名榜：Top 20 具名選手，你的名字插進去往上爬。",
+    "排名改為貼近真實 BWF 積分曲線，頂尖排名需長期累積。",
+  ]},
+  {ver:"生涯深度", items:[
+    "傷病事件系統：輕／中／重傷、復健期、賽季報銷與永久屬性損失。",
+    "雙打系統深化：搭檔默契與實力實際影響比賽，專屬事件與拆夥／挖角抉擇。",
+    "生涯歷程頁：世界排名折線圖、逐季戰績、冠軍列表。",
+    "資金商店：器材、換線調磅、私人教練、醫療（可加速復健）。",
+    "打法轉型（老將期）、新增多個特色成就。",
+    "40 歲為職業生涯極限，強制退役。",
+  ]},
+  {ver:"系統與體驗", items:[
+    "15 歲前只打青少年賽、不計世界排名（更貼近現實）。",
+    "每次比賽之間最多休整 5 次，用完強制出賽；賽後恢復至少 50% 體力。",
+    "球員檔案分頁與完整屬性頁、賽季頁左右兩欄排版。",
+    "比賽快進（×1/2/4/8）與臨場二選一決策（顯示成功率）。",
+    "刪除生涯存檔、命名骰子、全球開啟生涯統計、台灣選手跑馬燈。",
+  ]},
+];
+const News={
+  open(){
+    const body=CHANGELOG.map((c,i)=>`
+      <div class="clog ${i>0?'old':''}">
+        <div class="cver">${i===0?'🆕 ':''}${c.ver}</div>
+        <ul>${c.items.map(t=>`<li>${t}</li>`).join("")}</ul>
+      </div>`).join("");
+    Modal.open(`
+      <h2>📢 最新更新</h2>
+      <div class="desc">Racket Life 開發日誌 — 這段時間新增與改進的內容。</div>
+      ${body}
+      <button class="btn ghost" onclick="Modal.close()" style="margin-top:6px">關閉</button>`);
   }
 };
 
