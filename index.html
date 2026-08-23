@@ -32,19 +32,19 @@
   @keyframes spin{to{transform:rotate(360deg)}}
   @keyframes slidein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
-  /* News ticker — full-width, sticky top */
-  #ticker{display:flex;align-items:center;height:32px;width:100%;background:#07080a;
-    border-bottom:1px solid #1e3a2a;overflow:hidden;font-size:12.5px;
-    position:sticky;top:0;z-index:40}
-  .tk-tag{flex:0 0 auto;padding:0 14px;height:100%;display:flex;align-items:center;
-    font-weight:800;color:var(--green);background:linear-gradient(90deg,#0c1712,#0a0b0e);
-    border-right:1px solid #1e3a2a;letter-spacing:.5px}
-  .tk-tag::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green);
-    margin-right:7px;box-shadow:0 0 8px var(--green);animation:blink 1.4s infinite}
-  .tk-view{flex:1;overflow:hidden;position:relative;
+  /* News ticker — full-width, sticky top (absolute layout so it can't widen the page) */
+  #ticker{position:sticky;top:0;z-index:40;height:32px;width:100%;overflow:hidden;
+    background:#07080a;border-bottom:1px solid #1e3a2a;font-size:12.5px}
+  .tk-view{position:absolute;inset:0;overflow:hidden;
     -webkit-mask-image:linear-gradient(90deg,transparent,#000 3%,#000 96%,transparent);
     mask-image:linear-gradient(90deg,transparent,#000 3%,#000 96%,transparent)}
-  .tk-track{display:inline-flex;white-space:nowrap;will-change:transform;animation:marq 50s linear infinite}
+  .tk-track{position:absolute;top:0;left:0;height:100%;display:flex;align-items:center;
+    white-space:nowrap;will-change:transform;animation:marq 50s linear infinite}
+  .tk-tag{position:absolute;left:0;top:0;height:100%;z-index:2;padding:0 14px;display:flex;align-items:center;
+    font-weight:800;color:var(--green);background:linear-gradient(90deg,#0c1712 70%,rgba(10,11,14,0));
+    letter-spacing:.5px}
+  .tk-tag::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green);
+    margin-right:7px;box-shadow:0 0 8px var(--green);animation:blink 1.4s infinite}
   #ticker:hover .tk-track{animation-play-state:paused}
   .tk-item{padding:0 20px;color:var(--sub);flex:0 0 auto}
   .tk-item b{color:var(--neonY);font-weight:700}
@@ -65,8 +65,11 @@
   .btn.ghost{background:transparent;border-color:var(--line)}
   .btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
   .btn .sub{display:block;font-size:12px;color:var(--sub);font-weight:500;margin-top:4px;line-height:1.4}
-  .btn .tag{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--neon);
+  .btn .tag{position:absolute;right:12px;top:13px;font-size:11px;color:var(--neon);white-space:nowrap;
     border:1px solid var(--line2);border-radius:20px;padding:3px 9px;font-weight:700}
+  /* reserve room on the right so titles don't run under the tag pill (mobile squish fix) */
+  .btn:has(.tag){padding-right:74px}
+  .seasonrow .btn:has(.tag){padding-right:70px}
   .row{display:flex;gap:10px}.row>*{flex:1}
   .center{text-align:center}
   .sub{color:var(--sub)}.dim{color:var(--dim)}
@@ -139,14 +142,14 @@
   .forcebar{background:linear-gradient(180deg,#2a1414,#1a0f0f);border:1px solid #4a1c1c;
     color:var(--red2);font-weight:800;font-size:13px;text-align:center;padding:9px;border-radius:12px;
     margin-bottom:8px;animation:blink 1.6s infinite}
-  @media(max-width:430px){ .seasonrow{flex-direction:column} }
+  @media(max-width:480px){ .seasonrow{flex-direction:column} }
   /* profile tab: radar + gear left, attribute values right */
   .profilerow{display:flex;gap:12px;align-items:flex-start}
   .profilerow .p-left{flex:1 1 42%;min-width:0}
   .profilerow .p-right{flex:1 1 58%;min-width:0}
   .profilerow #radar{width:100%;max-width:190px;height:auto;aspect-ratio:1/1}
   .profilerow .attrgrid{grid-template-columns:1fr}
-  @media(max-width:430px){ .profilerow{flex-direction:column} .profilerow .attrgrid{grid-template-columns:1fr 1fr} }
+  @media(max-width:480px){ .profilerow{flex-direction:column} .profilerow .attrgrid{grid-template-columns:1fr 1fr} }
   /* event banners (region-themed) */
   .ebanner{position:relative;width:100%;height:100px;border-radius:14px;overflow:hidden;border:1px solid var(--line2)}
   .ebanner.big{height:170px}
@@ -830,7 +833,7 @@ const Hub={
       ? `雙打 · ${P.partner?P.partner.name:'—'}（默契 ${P.partner?round(P.partner.chem):'—'}）`
       : "單打";
     const rehab=Injury.blocked();
-    const forced=(P.restsLeft??5)<=0 && !rehab;   // 休整用完 → 強制出賽（復健中除外）
+    const restsOut=(P.restsLeft??5)<=0;
     b.innerHTML=`
       <div class="seasonrow">
         <div class="col-info">
@@ -849,18 +852,17 @@ const Hub={
         </div>
         <div class="col-act">
           <div class="grp" style="margin-top:0"><h3>本季行動</h3>
-            ${rehab?`<div class="forcebar">🚑 ${P.injured.name} 復健中 · 剩 ${P.injured.weeksLeft} 週<br><span style="font-weight:500;font-size:11px">休整 / 醫療可推進復健，康復後才能出賽</span></div>`
-              :forced?`<div class="forcebar">⚠️ 已休整 5 次，必須先出賽！</div>`:""}
-            <button class="btn primary" ${(forced||rehab)?'disabled':''} onclick="Train.open()">🏋️ 集訓（提升屬性 · 耗體能）
+            ${rehab?`<div class="forcebar">🚑 ${P.injured.name} 復健中 · 剩 ${P.injured.weeksLeft} 週<br><span style="font-weight:500;font-size:11px">休整 / 醫療可推進復健，康復後才能出賽</span></div>`:""}
+            <button class="btn primary" ${rehab?'disabled':''} onclick="Train.open()">🏋️ 集訓（提升屬性 · 耗體能）
               <span class="sub">選擇主攻方向強化，體能不足時效果打折</span>
               <span class="tag">${P.seasonPlayed?'可再練':'開季'}</span></button>
             <button class="btn primary" ${rehab?'disabled':''} onclick="Sched.open()">🗓️ 賽季行事曆 · 出戰
-              <span class="sub">${rehab?'復健中無法出賽':forced?'唯一可用行動 — 前往賽場':'世界各地賽站，自由選擇要參加哪些'}</span></button>
-            <button class="btn" ${forced?'disabled':''} onclick="Hub.rest()">${rehab?'🩹 復健休養':'🧘 休整一週'}（回體能 · 修復傷病）
-              <span class="sub">${rehab?'推進復健 -1 週 · 體能 +30 · 傷病 -15':'體能 +30 · 傷病 -15 · 但排名積分自然衰減'}</span>
+              <span class="sub">${rehab?'復健中無法出賽':'世界各地賽站，自由選擇要參加哪些'}</span></button>
+            <button class="btn" ${(!rehab&&restsOut)?'disabled':''} onclick="Hub.rest()">${rehab?'🩹 復健休養':'🧘 休整一週'}（回體能 · 修復傷病）
+              <span class="sub">${rehab?'推進復健 -1 週 · 體能 +30 · 傷病 -15':restsOut?'本階段已用完，出賽後恢復次數':'體能 +30 · 傷病 -15 · 但排名積分自然衰減'}</span>
               ${rehab?'':`<span class="tag">剩 ${P.restsLeft??5} 次</span>`}</button>
-            <button class="btn" ${forced?'disabled':''} onclick="Shop.open()">🛒 商店（器材 · 訓練 · 醫療）
-              <span class="sub">${rehab?'買醫療可加速復健':'用資金換屬性、器材與傷病恢復'}</span></button>
+            <button class="btn" onclick="Shop.open()">🛒 商店（器材 · 訓練 · 醫療）
+              <span class="sub">用資金換屬性、器材與傷病恢復</span></button>
           </div>
         </div>
       </div>
@@ -868,10 +870,10 @@ const Hub={
       <div class="grp"><h3>轉場</h3>
         <button class="btn ghost" onclick="Hub.openStyleChange()">🔄 打法轉型（改變克制關係）
           <span class="sub">目前：${STYLES[P.style].icon}${STYLES[P.style].name} · 適應新打法需時間（心態-6）</span></button>
-        <button class="btn ghost" ${forced?'disabled':''} onclick="Season.endYear()">⏭️ 結束本賽季 · 年終結算
-          <span class="sub">${forced?'出賽後才能結束賽季':'重算世界排名、年齡增長、身體變化與賽後事件'}</span></button>
+        <button class="btn ghost" onclick="Season.endYear()">⏭️ 結束本賽季 · 年終結算
+          <span class="sub">重算世界排名、年齡增長、身體變化與賽後事件</span></button>
       </div>
-      <div class="tapnote">提示：${forced?'休整次數已用盡，本階段只能出賽。':this.tip()}</div>`;
+      <div class="tapnote">提示：${this.tip()}</div>`;
   },
   tip(){
     if(P.stamina<25) return "體能偏低，先休整再出戰以免受傷。";
@@ -1037,7 +1039,6 @@ const TRAIN_PLANS=[
 const Train={
   open(){
     if(Injury.blocked()){ Feed.toast(`🚑 ${P.injured.name} 復健中，無法訓練`,"bad"); return; }
-    if((P.restsLeft??5)<=0){ Feed.toast("已休整 5 次，必須先出賽","bad"); return; }
     const html=`
       <h2>🏋️ 集訓計畫</h2>
       <div class="desc">選擇本週主攻方向。體能越充足、離天賦上限越遠，成長越大。過猛會累積傷病負荷。</div>
@@ -1321,12 +1322,11 @@ const Sched={
     const tags=`
       <div class="row"><span class="ebadge">${MONTHS[e.month]} · ${P.year}</span><span class="ebadge">${e.flag} ${e.city}站</span></div>
       <div class="row"><span class="etitle">🏸 ${e.name}</span></div>`;
-    const stamOk=P.stamina>=20;
+    const lowStam=P.stamina<25;
     let action;
     if(e.done) action=`<button class="btn" disabled>✓ 本站已出賽</button>`;
     else if(!this.eligible(e)) action=`<button class="btn" disabled>🔒 世界排名不足，無法參加</button>`;
-    else if(!stamOk) action=`<button class="btn" disabled>體能不足（需 ≥20%），先休整</button>`;
-    else action=`<button class="btn primary" onclick="Sched.enter(${idx})">▶ 出戰 ${e.name}</button>`;
+    else action=`<button class="btn primary" onclick="Sched.enter(${idx})">▶ 出戰 ${e.name}${lowStam?'（體能低）':''}</button>${lowStam?'<div class="tapnote" style="color:var(--amber)">⚠️ 體能僅 '+round(P.stamina)+'%，仍可出戰但表現會大打折扣</div>':''}`;
     $("event-body").innerHTML=`
       ${Banner.render(e,true,tags)}
       <div class="card">
@@ -1346,7 +1346,7 @@ const Sched={
     const e=P.calendar[idx]; if(!e) return;
     if(e.done){ Feed.toast("這一站已經打過了","bad"); return; }
     if(!this.eligible(e)){ Feed.toast("排名尚不足以參加這一站","bad"); return; }
-    if(P.stamina<20){ Feed.toast("體能不足以出戰，先休整","bad"); return; }
+    if(P.stamina<25) Feed.toast("⚠️ 體能偏低，這場表現會大打折扣","bad",2600);
     Match.startTournament(LEVEL_BY[e.level], e);
   }
 };
@@ -1948,7 +1948,6 @@ const Season={
     P.calendar=cal;
   },
   endYear(){
-    if((P.restsLeft??5)<=0){ Feed.toast("休整次數已用盡，先出賽再結束賽季","bad"); return; }
     // record the season just completed (before aging)
     P.history=P.history||[];
     P.history.push({ year:P.year, age:P.age, rank:P.rank, points:Math.round(P.points),
@@ -2383,6 +2382,11 @@ const Stats={
    NEWS / CHANGELOG — 最新更新
    ========================================================================= */
 const CHANGELOG=[
+  {ver:"平衡與修正", items:[
+    "移除「休整用完就被鎖住」：集訓、商店、結束賽季都不再被鎖。",
+    "體能 0% 也能出戰（不再擋低體能），但表現會大幅下降。",
+    "修正手機版面水平溢出（跑馬燈把頁面撐寬）的問題。",
+  ]},
   {ver:"賽事視覺 · 地標升級", items:[
     "各賽站地標大幅精緻化：吉隆坡雙子星塔＋空橋、倫敦大笨鐘＋指針、泰姬瑪哈陵＋倒影池、中國多層飛簷寶塔＋紅燈籠、東京富士山＋鳥居＋三重塔、丹麥風車格柵葉片＋小帆船。",
     "橫幅加入遠近層次、亮燈窗、星空、飛鳥、雲層與落日水面反光。",
