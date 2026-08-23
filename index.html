@@ -81,10 +81,17 @@
 
   /* Title */
   #s-title{position:relative}
-  .news-btn{position:absolute;top:10px;right:12px;z-index:10;width:auto;margin:0;
+  .corner-btns{position:fixed;top:42px;right:16px;z-index:35;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+  .news-btn{width:auto;margin:0;
     background:linear-gradient(180deg,#20242c,#171a20);border:1px solid var(--line2);color:var(--sub);
-    padding:7px 12px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px}
+    padding:7px 12px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap}
   .news-btn:hover{border-color:var(--neon);color:var(--ink)}
+  /* global milestone card (uses provided image) */
+  .msimg{width:100%;display:block;border-radius:14px;border:1px solid var(--line2)}
+  .mscap{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+    font-size:12px;color:var(--sub);margin:11px 2px 8px}
+  .mscap b{color:var(--neon)}
+  .msnext{color:var(--neon);font-size:12px;font-weight:800;margin:2px 2px 0}
   .news-dot{width:7px;height:7px;border-radius:50%;background:var(--neon);box-shadow:0 0 8px var(--neon);animation:blink 1.4s infinite}
   .clog{border-left:2px solid var(--line2);padding:0 0 4px 14px;margin:0 0 4px}
   .clog .cver{font-weight:800;font-size:13px;color:var(--neon);margin-bottom:4px;position:relative}
@@ -132,7 +139,9 @@
   .statrow{display:flex;justify-content:space-between;font-size:12px;align-items:center}
   .statrow .v{font-weight:800;font-variant-numeric:tabular-nums}
   .sbar{height:5px;flex:1;margin:0 8px;background:#0a0b0e;border-radius:4px;overflow:hidden;border:1px solid var(--line)}
-  .sbar i{display:block;height:100%;background:linear-gradient(90deg,var(--sky),var(--neon))}
+  .sbar i{display:block;height:100%;background:linear-gradient(90deg,var(--sky),var(--neon));transition:width .7s cubic-bezier(.2,.8,.2,1)}
+  @keyframes rankup{0%{color:#34d399;transform:scale(1.5)}60%{color:#34d399}100%{color:var(--sky);transform:scale(1)}}
+  .rankup{display:inline-block;animation:rankup 1.1s ease}
 
   /* season tab: info left, actions right */
   .seasonrow{display:flex;gap:12px;align-items:flex-start}
@@ -150,6 +159,21 @@
   .profilerow #radar{width:100%;max-width:190px;height:auto;aspect-ratio:1/1}
   .profilerow .attrgrid{grid-template-columns:1fr}
   @media(max-width:480px){ .profilerow{flex-direction:column} .profilerow .attrgrid{grid-template-columns:1fr 1fr} }
+  /* small-phone polish */
+  @media(max-width:400px){
+    .wrap{padding:13px}
+    .card{padding:13px}
+    .hdr{padding:9px 12px}
+    .hdr .who{font-size:14px;line-height:1.35}
+    .hdr .who .pill{font-size:10px;padding:2px 7px}
+    .hdr .meta{font-size:10px}
+    .seg{gap:4px;padding:3px}
+    .seg button{font-size:12px;padding:7px 2px}
+    .btn{font-size:14px;padding:13px 14px}
+    .grp h3{font-size:11px}
+    .board .pt{font-size:30px;min-width:46px}
+    .board .pname{font-size:13px}
+  }
   /* event banners (region-themed) */
   .ebanner{position:relative;width:100%;height:100px;border-radius:14px;overflow:hidden;border:1px solid var(--line2)}
   .ebanner.big{height:170px}
@@ -193,7 +217,7 @@
   .attr .t{display:flex;justify-content:space-between;color:var(--sub)}
   .attr .t b{color:var(--ink);font-variant-numeric:tabular-nums}
   .attr .mini{height:4px;background:#0a0b0e;border-radius:3px;margin-top:3px;overflow:hidden;border:1px solid var(--line)}
-  .attr .mini i{display:block;height:100%;background:linear-gradient(90deg,#3a4a6a,var(--sky))}
+  .attr .mini i{display:block;height:100%;background:linear-gradient(90deg,#3a4a6a,var(--sky));transition:width .7s cubic-bezier(.2,.8,.2,1)}
 
   /* Match */
   .board{background:#07080a;border:1px solid var(--line2);border-radius:16px;overflow:hidden;margin-bottom:12px}
@@ -207,6 +231,11 @@
   .board .g.win{color:var(--neon)}
   .board .pt{font-size:34px;font-weight:900;color:var(--neonY);font-variant-numeric:tabular-nums;min-width:52px;text-align:center}
   .board.mp{animation:redflash 1.1s infinite}
+  .champbox{text-align:center;animation:fade .5s ease}
+  .champbox .trophy{font-size:60px;line-height:1;animation:trophypop .7s cubic-bezier(.2,1.4,.4,1);
+    filter:drop-shadow(0 0 22px rgba(244,201,93,.6))}
+  .champbox .big{margin-top:6px;text-shadow:0 0 20px rgba(244,201,93,.4)}
+  @keyframes trophypop{0%{transform:scale(0) rotate(-40deg);opacity:0}70%{transform:scale(1.25) rotate(8deg)}100%{transform:scale(1) rotate(0);opacity:1}}
   .stambar{display:flex;align-items:center;gap:9px;padding:9px 14px;border-top:1px solid var(--line);font-size:11px;color:var(--sub)}
   .stambar .lab{flex:0 0 auto}
   .stambar .track{flex:1;height:7px;background:#07080a;border:1px solid var(--line);border-radius:6px;overflow:hidden}
@@ -286,7 +315,10 @@
 
   <!-- TITLE -->
   <section id="s-title" class="screen on">
-    <button class="news-btn" onclick="News.open()">📢 最新更新 <span class="news-dot"></span></button>
+    <div class="corner-btns">
+      <button class="news-btn" onclick="Milestone.open()">🌍 全球里程碑</button>
+      <button class="news-btn" onclick="News.open()">📢 最新更新 <span class="news-dot"></span></button>
+    </div>
     <div class="titlecard">
       <div class="logoplate"><img class="logoimg" src="logo.png" alt="RACKET LIFE"></div>
       <div class="sub" style="margin-top:10px;letter-spacing:3px;font-size:12px">羽 球 職 業 生 涯 模 擬 器</div>
@@ -556,6 +588,59 @@ const Feed={
   }
 };
 
+/* count-up number animation (remembers last value per key so only changes animate) */
+const Anim={
+  prev:{},
+  num(el, to, opts){
+    if(!el) return; opts=opts||{};
+    const fmt=opts.fmt||(v=>Math.round(v).toLocaleString());
+    let from = (opts.key!=null && opts.key in this.prev) ? this.prev[opts.key] : (opts.from!=null?opts.from:to);
+    if(opts.key!=null) this.prev[opts.key]=to;
+    if(Math.round(from)===Math.round(to)){ el.textContent=fmt(to); return; }
+    const dur=opts.dur||750, t0=performance.now();
+    const step=(t)=>{ const p=Math.min(1,(t-t0)/dur);
+      el.textContent=fmt(from+(to-from)*(1-Math.pow(1-p,3)));
+      if(p<1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  },
+  bars(root){
+    (root||document).querySelectorAll("i[data-w]").forEach(el=>{
+      el.style.width="0%";
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.style.width=el.dataset.w+"%"; }));
+    });
+  }
+};
+
+/* lightweight canvas confetti burst for celebrations */
+const Confetti={
+  fire(opts){
+    opts=opts||{};
+    const cv=document.createElement("canvas");
+    cv.style.cssText="position:fixed;inset:0;z-index:70;pointer-events:none";
+    cv.width=innerWidth; cv.height=innerHeight; document.body.appendChild(cv);
+    const ctx=cv.getContext("2d");
+    const cols=opts.colors||["#d7ff32","#ffe14d","#38bdf8","#34d399","#f472b6","#ffffff"];
+    const N=opts.count||160, g=0.16, parts=[];
+    for(let i=0;i<N;i++){
+      const ang=Math.random()*Math.PI*2, sp=4+Math.random()*7;
+      parts.push({ x:innerWidth*(0.2+Math.random()*0.6), y:innerHeight*0.28+Math.random()*40,
+        vx:Math.cos(ang)*sp*(0.6+Math.random()), vy:Math.sin(ang)*sp-6-Math.random()*4,
+        w:5+Math.random()*7, h:8+Math.random()*8, rot:Math.random()*6.28, vr:(Math.random()-0.5)*0.4,
+        c:cols[i%cols.length], life:0 });
+    }
+    let frames=0;
+    const draw=()=>{
+      frames++; ctx.clearRect(0,0,cv.width,cv.height);
+      parts.forEach(p=>{ p.vy+=g; p.x+=p.vx; p.y+=p.vy; p.vx*=0.99; p.rot+=p.vr; p.life++;
+        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+        ctx.globalAlpha=Math.max(0,1-frames/150); ctx.fillStyle=p.c;
+        ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); ctx.restore(); });
+      if(frames<150) requestAnimationFrame(draw); else cv.remove();
+    };
+    requestAnimationFrame(draw);
+  }
+};
+
 /* =========================================================================
    CHARACTER CREATION  (childhood chain)
    ========================================================================= */
@@ -753,7 +838,7 @@ const Hub={
           <div class="who">${P.name} <span class="pill ${P.hand==='left'?'sky':''}" style="margin-left:6px">${P.hand==='left'?'左手':'右手'} · ${STYLES[P.style].icon}${STYLES[P.style].name}</span></div>
           <div class="meta">AGE ${P.age} · ${P.year} 賽季 · ${this.levelName()} · ${this.phaseName()}</div>
         </div>
-        <div class="rank" onclick="Rankings.open()" style="cursor:pointer">世界排名 🌍<br><b class="mono" style="${P.age<15?'font-size:13px;color:var(--sky)':''}">${this.rankText()}</b></div>
+        <div class="rank" onclick="Rankings.open()" style="cursor:pointer">世界排名 🌍<br><b class="mono" id="hdr-rank" style="${P.age<15?'font-size:13px;color:var(--sky)':''}">${this.rankText()}</b></div>
       </div>
       <div class="bars">
         <div class="bar stam ${stamCls}"><div class="lab"><span>體能</span><span class="mono">${round(P.stamina)}%</span></div>
@@ -761,6 +846,11 @@ const Hub={
         <div class="bar mor"><div class="lab"><span>心態</span><span class="mono">${round(P.morale)}%</span></div>
           <div class="track"><div class="fill" style="width:${clamp(P.morale)}%"></div></div></div>
       </div>`;
+    // flash green when world rank improves
+    if(P.age>=15 && P.rank<9999){
+      const prev=Anim.prev.rankNum; Anim.prev.rankNum=P.rank;
+      if(prev!=null && P.rank<prev){ const rk=$("hdr-rank"); if(rk){ rk.classList.add("rankup"); Feed.toast(`📈 世界排名上升：#${prev} → #${P.rank}`,"good",3000); } }
+    } else { Anim.prev.rankNum=null; }
   },
   renderBody(tab){
     if(tab==="season") return this.season();
@@ -846,8 +936,8 @@ const Hub={
           <div class="card" style="margin-top:0">
             <div class="kv"><span class="k">賽季</span><span class="v mono">第 ${P.seasonNo+1} 季 · ${P.year}</span></div>
             <div class="kv"><span class="k">項目</span><span class="v">${disc}</span></div>
-            <div class="kv"><span class="k">積分</span><span class="v mono">${round(P.points).toLocaleString()} pts</span></div>
-            <div class="kv"><span class="k">資金</span><span class="v mono goldtext">$${round(P.money).toLocaleString()}</span></div>
+            <div class="kv"><span class="k">積分</span><span class="v mono" id="stat-points">${round(P.points).toLocaleString()} pts</span></div>
+            <div class="kv"><span class="k">資金</span><span class="v mono goldtext" id="stat-money">$${round(P.money).toLocaleString()}</span></div>
             <div class="kv"><span class="k">生涯戰績</span><span class="v mono">${P.careerWins}勝 ${P.careerLosses}敗</span></div>
             <div class="kv"><span class="k">冠軍</span><span class="v mono">🏆 ${P.titles.length}</span></div>
             ${P.injured?`<div class="kv"><span class="k" style="color:var(--red2)">傷病</span><span class="v" style="color:var(--red2)">${P.injured.name}${P.injured.block?`（復健剩 ${P.injured.weeksLeft} 週）`:'（可續戰）'}</span></div>`
@@ -879,6 +969,8 @@ const Hub={
           <span class="sub">重算世界排名、年齡增長、身體變化與賽後事件</span></button>
       </div>
       <div class="tapnote">提示：${this.tip()}</div>`;
+    Anim.num($("stat-points"), P.points, {key:"points", fmt:v=>Math.round(v).toLocaleString()+" pts"});
+    Anim.num($("stat-money"), P.money, {key:"money", fmt:v=>"$"+Math.round(v).toLocaleString()});
   },
   tip(){
     if(P.stamina<25) return "體能偏低，先休整再出戰以免受傷。";
@@ -922,7 +1014,7 @@ const Hub={
           <div class="grp" style="margin-top:0"><h3>綜合能力</h3>
             <div class="card" style="margin-top:0"><div class="statlist">${RADAR.map(([n,f])=>{
               const v=round(f(P));
-              return `<div class="statrow"><span class="sub">${n}</span><span class="sbar"><i style="width:${clamp(v)}%"></i></span><span class="v mono">${v}</span></div>`;
+              return `<div class="statrow"><span class="sub">${n}</span><span class="sbar"><i data-w="${clamp(v)}" style="width:0"></i></span><span class="v mono">${v}</span></div>`;
             }).join("")}</div></div>
           </div>
           ${this.attrGroupHtml(ATTR_GROUPS[0])}
@@ -932,13 +1024,13 @@ const Hub={
         </div>
       </div>
     `;
-    setTimeout(()=>Radar.draw(),30);
+    setTimeout(()=>{ Radar.animate(); Anim.bars($("hub-body")); },30);
   },
   attrGroupHtml(g){
     return `<div class="grp"><h3 style="color:${g.color}">${g.name}</h3>
       <div class="attrgrid">${g.keys.map(([k,lab])=>`
         <div class="attr"><div class="t"><span>${lab}</span><b>${P.attrs[k]}<span class="dim" style="font-weight:400"> /${P.caps[k]}</span></b></div>
-          <div class="mini"><i style="width:${clamp(P.attrs[k])}%"></i></div></div>`).join("")}
+          <div class="mini"><i data-w="${clamp(P.attrs[k])}" style="width:0"></i></div></div>`).join("")}
       </div></div>`;
   },
   showAttrs(){
@@ -946,11 +1038,12 @@ const Hub={
       <div class="grp" style="margin-top:0"><h3>綜合能力</h3>
         <div class="card" style="margin-top:0"><div class="statlist">${RADAR.map(([n,f])=>{
           const v=round(f(P));
-          return `<div class="statrow"><span class="sub">${n}</span><span class="sbar"><i style="width:${clamp(v)}%"></i></span><span class="v mono">${v}</span></div>`;
+          return `<div class="statrow"><span class="sub">${n}</span><span class="sbar"><i data-w="${clamp(v)}" style="width:0"></i></span><span class="v mono">${v}</span></div>`;
         }).join("")}</div></div>
       </div>
       ${ATTR_GROUPS.map(g=>this.attrGroupHtml(g)).join("")}`;
     UI.show("s-attrs");
+    setTimeout(()=>Anim.bars($("attrs-body")),20);
   },
   backFromAttrs(){ UI.show("s-hub"); UI.hubTab("profile"); },
   openStyleChange(){
@@ -995,7 +1088,13 @@ const Hub={
    RADAR CHART (canvas)
    ========================================================================= */
 const Radar={
-  draw(){
+  animate(){
+    const t0=performance.now(), dur=650;
+    const step=(t)=>{ const p=Math.min(1,(t-t0)/dur); this.draw(1-Math.pow(1-p,3)); if(p<1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  },
+  draw(prog){
+    if(prog==null) prog=1;
     const c=$("radar"); if(!c) return; const ctx=c.getContext("2d");
     const W=c.width,H=c.height,cx=W/2,cy=H/2,R=W/2-40,N=RADAR.length;
     ctx.clearRect(0,0,W,H);
@@ -1023,9 +1122,9 @@ const Radar={
     // caps polygon (approx via RADAR on caps)
     const capP=Object.assign({},P,{attrs:P.caps});
     poly(i=>RADAR[i][1](capP),"rgba(56,189,248,.06)","rgba(56,189,248,.35)");
-    poly(i=>RADAR[i][1](P),"rgba(215,255,50,.16)","rgba(215,255,50,.9)");
+    poly(i=>RADAR[i][1](P)*prog,"rgba(215,255,50,.16)","rgba(215,255,50,.9)");
     // vertices
-    for(let i=0;i<N;i++){const a=-Math.PI/2+i*2*Math.PI/N;const v=clamp(RADAR[i][1](P))/100;const r=R*v;
+    for(let i=0;i<N;i++){const a=-Math.PI/2+i*2*Math.PI/N;const v=clamp(RADAR[i][1](P)*prog)/100;const r=R*v;
       ctx.beginPath();ctx.arc(cx+r*Math.cos(a),cy+r*Math.sin(a),3,0,7);ctx.fillStyle="#d7ff32";ctx.fill();}
   }
 };
@@ -1815,8 +1914,15 @@ const Match={
     if(L.major){ P.majorTitles[L.id]=(P.majorTitles[L.id]||0)+1; }
     this.addLine(`🏆🏆🏆 冠軍！${M.teamMode?'🇹🇼 中華台北':P.name} 奪得 ${this.evName()} 冠軍！(+${L.pts.toLocaleString()}pts · $${L.money.toLocaleString()})`,"pt");
     Feed.toast(`🏆 ${this.evName()} 冠軍！`,"gold",3600);
-    $("match-title").innerHTML=`<div class="big goldtext">🏆 ${this.evName()}</div>${this.evLoc()?`<div class="sub">📍 ${this.evLoc()}</div>`:'<div class="sub">CHAMPION</div>'}`;
+    $("match-title").innerHTML=`<div class="champbox"><div class="trophy">🏆</div>
+      <div class="big goldtext">${this.evName()}</div>
+      <div class="sub">${this.evLoc()?'📍 '+this.evLoc()+' · ':''}CHAMPION</div></div>`;
     $("match-foot").innerHTML=`<button class="btn primary" onclick="Match.finishTournament(true)">舉起獎盃 ▶</button>`;
+    // celebration: gold confetti burst (bigger for majors)
+    const gold=["#f4c95d","#ffe14d","#ffffff","#d7ff32"];
+    Confetti.fire({count:L.major?230:150, colors:gold});
+    if(L.major) setTimeout(()=>Confetti.fire({count:150,colors:gold}),500);
+    if(navigator.vibrate) navigator.vibrate([40,60,40]);
     Achievements.check();
     Ranking.recompute();
     Hub.renderHeader();
@@ -2400,6 +2506,12 @@ const Stats={
    NEWS / CHANGELOG — 最新更新
    ========================================================================= */
 const CHANGELOG=[
+  {ver:"視覺美化", items:[
+    "數字滾動動畫：積分、資金變化時 count-up；世界排名上升時綠光跳動＋提示。",
+    "雷達圖載入時由中心長出、屬性長條填充動畫。",
+    "奪冠慶祝：金色彩帶爆開、獎盃彈跳、大賽雙重彩帶。",
+    "里程碑／最新更新按鈕移到螢幕右上角（不再侷限中間欄）。",
+  ]},
   {ver:"平衡與修正", items:[
     "移除「休整用完就被鎖住」：集訓、商店、結束賽季都不再被鎖。",
     "體能 0% 也能出戰（不再擋低體能），但表現會大幅下降。",
@@ -2435,6 +2547,34 @@ const CHANGELOG=[
     "刪除生涯存檔、命名骰子、全球開啟生涯統計、台灣選手跑馬燈。",
   ]},
 ];
+const Milestone={
+  nextTarget(n){
+    const ms=[100,250,500,1000,2500,5000,10000,25000,50000,100000,250000,500000,1000000];
+    return ms.find(m=>m>n) || Math.ceil((n+1)/1000000)*1000000;
+  },
+  today(){ const d=new Date(); return `${d.getFullYear()} 年 ${d.getMonth()+1} 月 ${d.getDate()} 日`; }
+  ,
+  open(){
+    Modal.open(`
+      <img src="milestone.png" class="msimg" alt="Racket Life 全球生涯里程碑">
+      <div class="mscap">
+        <span>📅 ${this.today()}</span>
+        <span id="mslive" class="sub">讀取全球數據…</span>
+      </div>
+      <div class="msnext" id="msnext" style="border-top:none;padding-top:0"></div>
+      <button class="btn ghost" onclick="Modal.close()" style="margin-top:10px">關閉</button>`);
+    this.load();
+  },
+  async load(){
+    let n=null;
+    try{ const r=await fetch(Stats.url("get"),{cache:"no-store"}); const j=await r.json(); n=(typeof j.value==="number")?j.value:0; }catch(e){}
+    const live=$("mslive"), nx=$("msnext");
+    if(n==null){ if(live) live.textContent="（離線）"; return; }
+    if(live) live.innerHTML=`目前全球 <b style="color:var(--neon)">${n.toLocaleString()}</b> 場生涯`;
+    const nt=this.nextTarget(n), left=nt-n;
+    if(nx) nx.innerHTML=`🎯 下一個里程碑：<b>${nt.toLocaleString()}</b> — 還差 ${left.toLocaleString()} 位球員`;
+  }
+};
 const News={
   open(){
     const body=CHANGELOG.map((c,i)=>`
