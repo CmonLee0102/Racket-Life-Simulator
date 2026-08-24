@@ -159,6 +159,27 @@
   .profilerow #radar{width:100%;max-width:190px;height:auto;aspect-ratio:1/1}
   .profilerow .attrgrid{grid-template-columns:1fr}
   @media(max-width:480px){ .profilerow{flex-direction:column} .profilerow .attrgrid{grid-template-columns:1fr 1fr} }
+  /* desktop / wide layout — use the width instead of a narrow centre column */
+  @media(min-width:700px){
+    #app{max-width:880px}
+    .titlecard{max-width:470px;margin-left:auto;margin-right:auto}
+    #hub-body{max-width:840px;margin:0 auto}
+    #s-match .wrap, #s-rankings .wrap, #s-event .wrap, #s-guide .wrap, #s-end .wrap{max-width:600px;margin:0 auto}
+    /* calendar: cards in a 2-column grid */
+    #calendar-body{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+    #calendar-body>.tapnote{grid-column:1/-1}
+    #calendar-body .ecard{margin:0}
+    /* shop: items 2-up inside each category */
+    #shop-body .grp{display:grid;grid-template-columns:1fr 1fr;column-gap:12px;row-gap:8px;align-items:start}
+    #shop-body .grp h3{grid-column:1/-1}
+    #shop-body .grp .opt{margin:0}
+    /* training: plans 2-up */
+    #train-body{display:grid;grid-template-columns:1fr 1fr;column-gap:12px;row-gap:10px;align-items:start}
+    #train-body>.tapnote{grid-column:1/-1}
+    #train-body .opt{margin:0}
+    /* achievements: 3 across */
+    .achgrid{grid-template-columns:repeat(3,1fr)}
+  }
   /* small-phone polish */
   @media(max-width:400px){
     .wrap{padding:13px}
@@ -194,6 +215,7 @@
   .ebadge.hot{background:linear-gradient(90deg,#f59e0b,#f97316);border-color:transparent;color:#160d02}
   .etitle{font-size:15px;font-weight:800;text-shadow:0 2px 8px rgba(0,0,0,.75);display:flex;align-items:center;gap:7px}
   .ebanner.big .etitle{font-size:20px}
+  .ecard .ebanner{height:140px}
   .ecard{margin:0 0 12px;cursor:pointer;transition:transform .12s}
   .ecard:hover{transform:translateY(-2px)}
   .ecard.locked{opacity:.5;cursor:default}
@@ -400,6 +422,14 @@
       <div class="meta" id="shop-money"></div></div>
       <button class="btn ghost" style="width:auto;margin:0;padding:6px 12px" onclick="Shop.back()">◀ 返回賽季</button></div></div>
     <div class="wrap" id="shop-body"></div>
+  </section>
+
+  <!-- TRAINING -->
+  <section id="s-train" class="screen">
+    <div class="hdr"><div class="top"><div><div class="who">🏋️ 集訓計畫</div>
+      <div class="meta" id="train-meta"></div></div>
+      <button class="btn ghost" style="width:auto;margin:0;padding:6px 12px" onclick="Train.back()">◀ 返回賽季</button></div></div>
+    <div class="wrap" id="train-body"></div>
   </section>
 
   <!-- WORLD RANKINGS -->
@@ -1143,22 +1173,21 @@ const TRAIN_PLANS=[
 const Train={
   open(){
     if(Injury.blocked()){ Feed.toast(`🚑 ${P.injured.name} 復健中，無法訓練`,"bad"); return; }
-    const html=`
-      <h2>🏋️ 集訓計畫</h2>
-      <div class="desc">選擇本週主攻方向。體能越充足、離天賦上限越遠，成長越大。過猛會累積傷病負荷。</div>
+    $("train-meta").textContent=`體能 ${round(P.stamina)}% · 選擇主攻方向`;
+    $("train-body").innerHTML=`
+      <div class="tapnote" style="text-align:left;margin:0 0 8px">體能越充足、離天賦上限越遠，成長越大。過猛會累積傷病負荷。</div>
       ${TRAIN_PLANS.map(pl=>{
         const room=pl.keys.some(k=>P.attrs[k]<P.caps[k]);
         return `<div class="opt" onclick="Train.run('${pl.id}')">
           <div class="ot">${pl.name} <span class="pill" style="float:right">體能-${pl.cost}</span></div>
           <div class="oe" style="color:var(--sub);display:block;margin-top:5px">${pl.desc} · ${pl.keys.map(k=>LABEL[k]).join("／")}${room?"":' <span style="color:var(--amber)">(接近上限)</span>'}</div>
         </div>`;
-      }).join("")}
-      <button class="btn ghost" onclick="Modal.close()" style="margin-top:12px">取消</button>`;
-    Modal.open(html);
+      }).join("")}`;
+    UI.show("s-train");
   },
+  back(){ UI.show("s-hub"); UI.hubTab("season"); },
   run(id){
     const pl=TRAIN_PLANS.find(x=>x.id===id);
-    Modal.close();
     if(P.stamina<8){ Feed.toast("體能過低，先休整再訓練","bad"); return; }
     const effFactor = P.stamina>=pl.cost?1 : 0.5; // fatigued -> half
     let gained=[];
@@ -1175,7 +1204,7 @@ const Train={
     P.morale=clamp(P.morale+(gained.length?2:-3));
     P.seasonPlayed=true;
     Feed.toast(gained.length?`🏋️ 集訓成效：${gained.join("、")}`:"已達上限，收效甚微","good");
-    Hub.renderHeader(); Hub.season(); Game.save();
+    UI.show("s-hub"); Hub.renderHeader(); UI.hubTab("season"); Game.save();
     // possible real injury from hard training
     if(pl.wrist||pl.knee) Injury.maybeTrigger("train");
   }
@@ -1731,6 +1760,11 @@ const Match={
       `${YOU} 突擊點殺直線`, `${OPP} 魚躍救球撲回前場`,
       `${YOU} 拉開對角調動`, `${OPP} 放網勾對角`,
       `${YOU} 平高球壓反手`, `${OPP} 頭頂區劈吊對角`,
+      `${YOU} 劈殺追身逼出高球`, `${OPP} 反手過渡穩住陣腳`,
+      `${YOU} 假動作停頓再推底線`, `${OPP} 蹬跳撲網搶點`,
+      `${YOU} 連續下壓不給喘息`, `${OPP} 低手挑球拉開角度`,
+      `${YOU} 滑板吊球輕巧過網`, `${OPP} 撲身接殺擋直線`,
+      `${YOU} 中場攔截半場推`, `${OPP} 收拍勾放小球`,
     ];
     const n=clamp(Math.round(len/2),0,4);
     for(let i=0;i<n;i++) shots.push(pick(midShots)+"。");
@@ -1742,12 +1776,22 @@ const Match={
       `${YOU} 一拍劈殺壓線，對手措手不及！`,
       `${OPP} 回球下網，${YOU} 拿下這一分！`,
       `${YOU} 多拍磨到對手回球出界！`,
+      `${YOU} 一個急停突擊，球速快到看不見！`,
+      `${YOU} 網前撲殺，快、狠、準，得分！`,
+      `${YOU} 頭頂區劈殺對角死角，漂亮！`,
+      `${YOU} 連續進攻打穿防線，對手只能目送！`,
+      `${OPP} 挑球出界，${YOU} 耐心得分！`,
     ]:[
       `${OPP} 一記重殺直線穿越，${P.name} 撲救不及。`,
       `${YOU} 殺球出界，${OPP} 得分。`,
       `${OPP} 網前勾對角，${YOU} 沒能追到。`,
       `${YOU} 高球出底線，${OPP} 抓住機會。`,
       `${OPP} 防守反擊一拍制勝。`,
+      `${YOU} 網前放球下網，可惜了。`,
+      `${OPP} 一記勾球騙過${P.name}，得分。`,
+      `${YOU} 回球被預判，${OPP} 輕鬆封網。`,
+      `${OPP} 連續施壓，${P.name} 回擊掛網。`,
+      `${YOU} 撲救不及，${OPP} 拿下關鍵一分。`,
     ];
     shots.forEach((s,i)=>this.addLine((len>=10&&i===0?`<span class="dim">[${len}拍長回合] </span>`:"")+s,"sys"));
     if(key) this.addLine("⚡ 關鍵分！全場屏息……","sys");
@@ -2060,11 +2104,15 @@ const Season={
       {level:"sudirman",name:"蘇迪曼盃 · 混合團體",city:"廈門",flag:"🇨🇳", month:5, theme:"china"},
       {level:"s750", name:"印尼公開賽",       city:"雅加達", flag:"🇮🇩", month:6, theme:"tropical"},
       {level:"s500", name:"新加坡公開賽",     city:"新加坡", flag:"🇸🇬", month:6, theme:"tropical"},
+      {level:"s300", name:"加拿大公開賽",     city:"卡加利", flag:"🇨🇦", month:7, theme:"la"},
       {level:"worlds",name:"世界錦標賽",      city:worldsHost[0],flag:worldsHost[1],month:8, theme:worldsHost[2]},
       {level:"s750", name:"日本公開賽",       city:"東京",   flag:"🇯🇵", month:9, theme:"japan"},
+      {level:"s300", name:"韓國公開賽",       city:"首爾",   flag:"🇰🇷", month:9, theme:"japan"},
       {level:"s750", name:"中國公開賽",       city:"常州",   flag:"🇨🇳", month:9, theme:"china"},
       {level:"thomas",name:"湯姆斯盃 · 男子團體",city:"成都", flag:"🇨🇳", month:10, theme:"china"},
       {level:"s500", name:"丹麥公開賽",       city:"奧登斯", flag:"🇩🇰", month:10, theme:"denmark"},
+      {level:"s750", name:"法國公開賽",       city:"巴黎",   flag:"🇫🇷", month:10, theme:"prague"},
+      {level:"s300", name:"香港公開賽",       city:"香港",   flag:"🇭🇰", month:11, theme:"tropical"},
       {level:"finals",name:"世界巡迴賽總決賽", city:"杭州",   flag:"🇨🇳", month:12, theme:"china"},
     ];
     if(P.year%4===0) cal.splice(8,0,{level:"olympic",name:"奧林匹克運動會",city:"洛杉磯",flag:"🇺🇸",month:7, theme:"la"});
@@ -2259,6 +2307,112 @@ const SEASON_POOL=[
       {t:"用實力回應，加倍苦練",eff:{smash:3,stamina:3,will:3},stamina:-6,log:"你用行動證明老將的價值。"},
       {t:"淡然處之",eff:{composure:4},log:"你不被外界噪音干擾。"},
     ]},
+  {title:"社群媒體爆紅",emoji:"📱",desc:"你一記不可思議的救球影片在網路瘋傳，粉絲數暴增。",
+    options:[
+      {t:"順勢經營自媒體",eff:{fame:8},money:12000,stamina:-4,log:"知名度大漲，但也多了分心。"},
+      {t:"低調專注訓練",eff:{tactics:3,composure:3},log:"你把注意力留在球場上。"},
+    ]},
+  {title:"慈善表演賽",emoji:"🤝",desc:"你受邀參加一場公益表演賽，為偏鄉羽球扎根。",
+    options:[
+      {t:"欣然出席",eff:{fame:5,composure:2,will:2},money:8000,stamina:-5,log:"你回饋了社會，心境更開闊。"},
+      {t:"婉拒、留力備戰",heal:{stamina:6},log:"你選擇保留體力專注賽季。"},
+    ]},
+  {title:"世界羽聯規則變動",emoji:"📏",desc:"BWF 試行新的發球高度規則，你需要重新適應。",
+    options:[
+      {t:"積極調整發球動作",eff:{net:3,tactics:3},stamina:-4,log:"你率先掌握了新規則的節奏。"},
+      {t:"沿用舊習慣",eff:{composure:-3},log:"你適應得慢了些，吃了幾張發球犯規。"},
+    ]},
+  {title:"與球星合訓",emoji:"⭐",desc:"一位世界頂尖球星邀你共同集訓一週。",
+    options:[
+      {t:"把握機會偷師",eff:{smash:3,placement:3,tactics:3},stamina:-8,log:"高手過招，你的層次又提升了。"},
+      {t:"專注自己的課表",eff:{stamina:3,will:2},log:"你穩紮穩打走自己的路。"},
+    ]},
+  {title:"負面報導風波",emoji:"📰",desc:"某媒體對你做了一篇偏頗的負面報導，輿論沸沸揚揚。",
+    options:[
+      {t:"冷靜發聲明澄清",eff:{composure:5,clutch:2},log:"你成熟地化解了風波。"},
+      {t:"憤而回嗆",eff:{composure:-5,will:3},hidden:{},log:"你發洩了情緒，卻讓事情更複雜。"},
+    ]},
+  {title:"贊助商廣告拍攝",emoji:"🎬",desc:"品牌邀你擔綱新一季廣告主角。",
+    options:[
+      {t:"接下代言",eff:{fame:6},money:45000,stamina:-6,log:"曝光與收入雙收，但檔期被佔用。"},
+      {t:"推掉專心比賽",eff:{tactics:2,will:2},log:"你把賽季擺第一。"},
+    ]},
+  {title:"體能大考驗",emoji:"🏃",desc:"國家隊安排了魔鬼體能測驗週。",
+    options:[
+      {t:"全力衝刺體能",eff:{stamina:5,durability:4,explosive:2},stamina:-10,hidden:{knee:6},log:"體能突飛猛進，膝蓋也小有負荷。"},
+      {t:"量力而為",eff:{stamina:2},log:"你穩健完成、避免受傷。"},
+    ]},
+  {title:"家鄉英雄返鄉",emoji:"🏡",desc:"你回到故鄉，受到球迷熱烈歡迎，鄉親都以你為榮。",
+    options:[
+      {t:"舉辦青少年訓練營",eff:{will:4,composure:3,fame:4},money:-5000,log:"你點燃了下一代的夢想。"},
+      {t:"低調探親休息",heal:{stamina:12},eff:{composure:3},log:"你好好充電、找回初心。"},
+    ]},
+  {title:"傷後心魔",emoji:"🧠",desc:"舊傷雖已痊癒，但你在關鍵球時仍會下意識保留。",
+    options:[
+      {t:"找運動心理師諮商",eff:{clutch:4,composure:4},money:-8000,log:"你逐漸走出陰影、放膽出手。"},
+      {t:"靠比賽慢慢找回",eff:{will:3},log:"你選擇在賽場上自我克服。"},
+    ]},
+  // ── 場外事件 / 活動 ──
+  {title:"BWF 年度最佳球員",emoji:"🏅",cond:()=>P.rank<=5,desc:"你入圍世界羽聯年度最佳球員，將出席盛大頒獎典禮。",
+    options:[
+      {t:"盛裝出席、發表感言",eff:{fame:10,composure:4,will:3},money:20000,log:"聚光燈下，你成為全球羽壇的焦點。"},
+      {t:"低調領獎、隔天照常訓練",eff:{tactics:3,will:3},log:"榮耀留在昨天，你把目標望向更高處。"},
+    ]},
+  {title:"豪宅入手",emoji:"🏠",cond:()=>P.money>=250000,desc:"多年打拚有成，你看上一間夢想中的房子。",
+    options:[
+      {t:"買下、給自己一個家",eff:{composure:5,will:3},money:-180000,log:"有了安穩的後盾，你打球更踏實了。"},
+      {t:"繼續存錢、保持飢餓",eff:{will:4},log:"你選擇維持拚勁，暫不安逸。"},
+    ]},
+  {title:"簽名鞋聯名款",emoji:"👟",cond:()=>P.attrs.fame>=25,desc:"品牌想以你為名推出一雙簽名戰靴。",
+    options:[
+      {t:"深度參與設計",eff:{fame:7,agility:2},money:60000,stamina:-4,log:"你的名字印上鞋身，也帶來可觀收入。"},
+      {t:"授權即可、不佔時間",eff:{},money:30000,log:"你收下授權金，把時間留給訓練。"},
+    ]},
+  {title:"人生大事",emoji:"💍",cond:()=>P.age>=25,desc:"交往多年的另一半，你決定步入禮堂。",
+    options:[
+      {t:"舉辦婚禮、開啟新篇章",eff:{composure:6,will:4,clutch:2},money:-40000,log:"有了牽掛也有了力量，你更加成熟穩定。"},
+      {t:"低調登記、專注賽季",eff:{composure:3},heal:{stamina:5},log:"你們簡單成家，日子照舊。"},
+    ]},
+  {title:"新生兒報到",emoji:"👶",cond:()=>P.age>=26,desc:"你當爸媽了！喜悅之餘，也開始睡眠不足。",
+    options:[
+      {t:"親力親為帶小孩",eff:{will:6,composure:3},stamina:-10,log:"為了孩子，你找到全新的拚勁。"},
+      {t:"請家人幫忙、維持狀態",eff:{will:3},heal:{stamina:4},log:"你在家庭與職業間取得平衡。"},
+    ]},
+  {title:"參加綜藝節目",emoji:"📺",cond:()=>P.attrs.fame>=20,desc:"熱門綜藝邀你上節目挑戰趣味體能關卡。",
+    options:[
+      {t:"欣然上節目圈粉",eff:{fame:8,composure:2},money:15000,stamina:-6,log:"你的親和形象收穫大批新粉絲。"},
+      {t:"婉拒、專心訓練",eff:{tactics:3},log:"你把心思全放在球場。"},
+    ]},
+  {title:"高原移地訓練",emoji:"⛰️",desc:"教練團安排到高海拔基地進行移地訓練，強化心肺。",
+    options:[
+      {t:"接受魔鬼高原特訓",eff:{stamina:6,durability:3,explosive:2},stamina:-8,log:"稀薄空氣中苦練，你的心肺脫胎換骨。"},
+      {t:"留在平地穩定調整",eff:{placement:2,tactics:2},log:"你選擇穩紮穩打的常規課表。"},
+    ]},
+  {title:"自傳出版",emoji:"📖",cond:()=>P.age>=28||P.attrs.fame>=40,desc:"出版社邀你出版生涯自傳，回顧一路走來的點滴。",
+    options:[
+      {t:"認真撰寫、暢銷熱賣",eff:{fame:8,composure:3},money:35000,log:"你的故事激勵了無數年輕球員。"},
+      {t:"婉拒、故事留待日後",eff:{will:2},log:"你覺得生涯還沒到寫結局的時候。"},
+    ]},
+  {title:"名人堂入列",emoji:"🏛️",cond:()=>P.age>=33&&P.bestRank<=10,desc:"你的成就獲得肯定，即將入選國際羽球名人堂。",
+    options:[
+      {t:"光榮出席典禮",eff:{fame:12,composure:5,will:4},log:"你的名字將永遠銘刻在羽球歷史中。"},
+      {t:"感念之餘、繼續奮戰",eff:{will:6},log:"你把榮耀化為再戰的動力。"},
+    ]},
+  {title:"投資理財",emoji:"💹",cond:()=>P.money>=120000,desc:"理財顧問建議你把部分收入拿去投資。",
+    options:[
+      {t:"積極投資（有賺有賠）",money:0,pointsMul:1,invest:true,log:"市場起伏，結果難料……"},
+      {t:"保守存起來",eff:{composure:2},log:"你選擇穩健，錢放著最安心。"},
+    ]},
+  {title:"重返母校演講",emoji:"🎓",desc:"母校邀你回去對學弟妹分享奮鬥歷程。",
+    options:[
+      {t:"熱血開講、鼓舞後輩",eff:{composure:3,will:3,fame:3},log:"看著學弟妹發亮的眼神，你想起了初心。"},
+      {t:"贈送裝備、低調關懷",eff:{composure:2},money:-4000,log:"你默默資助了球隊的訓練裝備。"},
+    ]},
+  {title:"世界球王加冕",emoji:"👑",cond:()=>P.rank===1,desc:"你正式登上世界第一！全國媒體爭相報導。",
+    options:[
+      {t:"享受榮耀、宣示霸業",eff:{fame:10,clutch:4,will:3},log:"站上頂峰，你成為所有人追趕的目標。"},
+      {t:"保持謙遜、繼續精進",eff:{composure:5,tactics:3},log:"你深知守住比登頂更難。"},
+    ]},
 ];
 
 const Events={
@@ -2280,7 +2434,7 @@ const Events={
     Modal.open(html,true);
   },
   buildSeasonEvent(){
-    let pool=SEASON_POOL.filter(e=>!e.onlyDoubles||P.discipline==="doubles");
+    let pool=SEASON_POOL.filter(e=>(!e.onlyDoubles||P.discipline==="doubles") && (!e.cond||e.cond()));
     return pick(pool);
   },
   effChips(o){
@@ -2296,12 +2450,19 @@ const Events={
     if(o.hidden){ if(o.hidden.wrist) chips.push(`<span class="chip risk">手腕風險+${o.hidden.wrist}</span>`);
       if(o.hidden.knee) chips.push(`<span class="chip risk">膝蓋風險+${o.hidden.knee}</span>`); }
     if(o.set&&o.set.retireNow) chips.push(`<span class="chip">退役</span>`);
+    if(o.invest) chips.push(`<span class="chip risk">高風險 · 有賺有賠</span>`);
     return chips.join("");
   },
   choose(i){
-    const o=this.pending.options[i]; const cb=this.cb;
+    let o=this.pending.options[i]; const cb=this.cb;
     Modal.close(); this.pending=null; this.cb=null;
     // apply effects
+    if(o.invest){
+      const base=Math.min(P.money*0.4, 100000);
+      const gain=Math.round(base*rnd(-0.6,1.1));
+      P.money=Math.max(0,P.money+gain);
+      o=Object.assign({},o,{log:gain>=0?`📈 投資獲利 $${gain.toLocaleString()}！眼光獨到。`:`📉 投資虧損 $${Math.abs(gain).toLocaleString()}…市場無情。`});
+    }
     if(o.eff) for(const[k,v]of Object.entries(o.eff)){ if(k in P.attrs) P.attrs[k]=clamp(P.attrs[k]+v); }
     if(o.money) P.money+=o.money;
     if(o.points) P.points+=o.points;
@@ -2377,6 +2538,13 @@ const ACHIEVEMENTS=[
   {id:"titles20",icon:"👑",name:"冠軍收藏家",desc:"生涯累積 20 座冠軍。",cond:p=>p.titles.length>=20},
   {id:"win200",icon:"💯",name:"兩百勝里程碑",desc:"生涯累積 200 場勝利。",cond:p=>p.careerWins>=200},
   {id:"transform",icon:"🦋",name:"浴火重生",desc:"生涯中完成一次打法轉型。",cond:p=>!!p.styleTransformed},
+  {id:"sweep300",icon:"⚔️",name:"橫掃千軍",desc:"生涯累積 300 場勝利。",cond:p=>p.careerWins>=300},
+  {id:"underdog",icon:"🌱",name:"白手起家",desc:"平民家庭出身，仍奪得大賽冠軍。",cond:p=>p.family==="common"&&Object.keys(p.majorTitles).length>=1},
+  {id:"lefty",icon:"🫲",name:"左手魔法師",desc:"以左手打進世界前 10。",cond:p=>p.hand==="left"&&p.bestRank<=10},
+  {id:"season5",icon:"🎇",name:"五冠王",desc:"單一賽季奪得 5 座以上冠軍。",cond:p=>p.titles.filter(t=>t.year===p.year).length>=5},
+  {id:"smasher",icon:"💣",name:"頂級殺球手",desc:"後場進攻屬性達到 90。",cond:p=>p.attrs.smash>=90},
+  {id:"allround",icon:"🧬",name:"六邊形戰士",desc:"六大綜合能力全部達到 80 以上。",cond:p=>RADAR.every(([n,f])=>f(p)>=80)},
+  {id:"ironwill",icon:"🔩",name:"鋼鐵意志",desc:"曾經受傷，仍累積 10 座以上冠軍。",cond:p=>(p.injuryCount||0)>=1&&p.titles.length>=10},
 ];
 const Achievements={
   check(){
@@ -2450,6 +2618,12 @@ const Ticker={
     ['宋碩芸','女單 <b>Super 100</b> 亞軍，直逼生涯新高'],
     ['中華隊','<b>蘇迪曼盃</b>混合團體挺進複賽'],
     ['張允澤','青少年亞錦賽 <b>男單金牌</b>，被譽為明日之星'],
+    ['Axelsen','<b>全英</b>四連霸，宣示世界球王地位'],
+    ['石宇奇','主場 <b>中國公開賽</b>封王，全場沸騰'],
+    ['Vitidsarn','<b>世錦賽</b>衛冕，泰國羽球再創高峰'],
+    ['Lee Zii Jia','傷癒復出，<b>丹麥公開賽</b>殺進決賽'],
+    ['中華隊','<b>亞運</b>羽球團體摘下歷史首金'],
+    ['王齊麟 / 邱相榤','男雙新組合 <b>Super 750</b> 奪冠'],
   ],
   build(year){
     const yr = year||2026;
@@ -2506,6 +2680,13 @@ const Stats={
    NEWS / CHANGELOG — 最新更新
    ========================================================================= */
 const CHANGELOG=[
+  {ver:"寬版桌機 & 更多內容", items:[
+    "桌機寬螢幕改用寬版面：行事曆兩欄、商店每類兩欄、成就三欄，不再擠在中間窄欄。",
+    "集訓改為獨立頁面（與商店、行事曆一致）。",
+    "新增 10 個賽季隨機事件（爆紅、慈善賽、負面報導、合訓、心魔…）。",
+    "新增多個賽站（加拿大、韓國、法國、香港）與更豐富的比賽逐拍播報。",
+    "新增 7 個成就與更多跑馬燈快訊。",
+  ]},
   {ver:"視覺美化", items:[
     "數字滾動動畫：積分、資金變化時 count-up；世界排名上升時綠光跳動＋提示。",
     "雷達圖載入時由中心長出、屬性長條填充動畫。",
